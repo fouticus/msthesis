@@ -1,0 +1,243 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Colorado State University LaTeX Thesis Template and Documentation
+%
+% by
+%   Elliott Forney
+%
+% This is free and unencumbered software released into the public domain.
+% 
+% Anyone is free to copy, modify, publish, use, compile, sell, or
+% distribute this software, either in source code form or as a compiled
+% binary, for any purpose, commercial or non-commercial, and by any
+% means.
+% 
+% In jurisdictions that recognize copyright laws, the author or authors
+% of this software dedicate any and all copyright interest in the
+% software to the public domain. We make this dedication for the benefit
+% of the public at large and to the detriment of our heirs and
+% successors. We intend this dedication to be an overt act of
+% relinquishment in perpetuity of all present and future rights to this
+% software under copyright law.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+% EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+% MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+% IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+% OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+% ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+% OTHER DEALINGS IN THE SOFTWARE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Preamble
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% use the thesis document class
+% this is derived from the standard book class
+% and supports many of the same features
+\documentclass[master]{thesis}
+%\documentclass[doctor]{thesis} % for a dissertation
+
+% fonts
+% use times font by default but can specify other fonts
+%\usepackage{fourier} % fourier is also a nice choice
+
+%\usepackage[scaled]{helvet} % or these two lines give a sans-serif font
+%\renewcommand\familydefault{\sfdefault} 
+
+% this is useful for including dummy test
+% it can be removed in final document
+\usepackage{lipsum}
+
+% ams math packages
+\usepackage[cmex10]{amsmath}
+\usepackage{amsthm,amssymb}
+
+% graphics packages
+\usepackage[pdftex]{graphicx} % remove pdftex if you are not compiling to pdf
+\graphicspath{{./figures/}} % this places all graphics in the figures subdirectory
+
+% allowed graphics extensions
+% uncomment if you prefer to add extension in \includegraphics
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+% allows the creation of subfigures
+\usepackage[caption=false]{subfig}
+
+% book tables are simple and look nice
+\usepackage{booktabs}
+
+% for specifying urls and links
+\usepackage{url}
+\urlstyle{same} % same style as regular text
+
+% Title Page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% title of your thesis
+\title{Protein Interface Prediction Using Graph Convolutional Networks}
+
+% author's name
+\author{Alex M. Fout}
+
+% author's email address
+\email{fout@colostate.edu}
+
+% department name
+\department{Department of Computer Science}
+
+% semester of completion
+\semester{Fall 2017}
+
+% committee member names
+\advisor{Asa Ben-Hur}
+\committee{Chuck Anderson} % as many committee entries as you need
+\committee{Hamid Reza Chitsaz}
+\committee{Wen Zhou}
+
+% Copyright Page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% here is an example of student copyright declaration
+% note that the \copyright command prints the copyright symbol,
+% so we use the name \mycopyright instead
+\mycopyright{%
+Copyright by Alex M. Fout 2017 \\
+All Rights reserved
+}
+
+% here is an example of a creative commons copyright license
+% ask the graduate school for more information
+%\mycopyright{%
+%This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 3.0 United States License.
+%
+%\vspace{3em}
+%
+%To view a copy of this license, visit:
+%
+%\vspace{2em}
+%
+%\url{http://creativecommons.org/licenses/by-nc-nd/3.0/legalcode}
+%
+%\vspace{3em}
+%
+%Or send a letter to:
+%
+%\vspace{2em}
+%
+%Creative Commons
+%
+%171 Second Street, Suite 300
+%
+%San Francisco, California, 94105, USA.
+%}
+
+% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\abstract{%
+This document aims to get you started typesetting your thesis or dissertation in \LaTeX{}.  It serves both as a sample and as the documentation for this package.  Please review the entire document for helpful tips about formatting your thesis or dissertation.  You may replace this text with your abstract.
+}
+
+% Acknowledgments 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\acknowledgements{%
+
+}
+
+% Metadata
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% consider using hyperref to insert pdf metadata and make links clickable
+% safe to remove if not using pdf or if it causes problems
+\usepackage[pdfpagelabels,pdfusetitle,colorlinks=false,pdfborder={0 0 0}]{hyperref}
+
+\begin{document} % preamble is complete, add any custom packages above
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\frontmatter % starts preliminary pages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\maketitle
+\makemycopyright
+\makeabstract
+\makeacknowledgements
+
+
+\tableofcontents
+\listoftables % optional
+\listoffigures % optional
+
+\mainmatter % starts thesis body
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{introduction.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\chapter{The Thesis Document Class}
+
+
+\section{Required Packages}
+  
+
+\section{Document Class Options}
+
+
+\section{Preliminary Pages}
+
+
+\section{Front, Main, Back and Appendix Regions}
+
+
+\chapter{Figures, Tables and Floats, Oh My!}
+
+\section{Figures}
+
+
+\subsection{Subfigures}
+
+\section{Sideways Pages}
+
+
+\section{Tables}
+
+
+\section{Equations}
+
+\chapter{References}
+
+\section{Citation}
+
+\section{Footnotes}
+
+\section{Bibliography}
+
+Let's cite a bunch of things \cite{forney20112749, cebl, forney2011thesis, forney2015echostate, haykin2009neural}.
+
+\chapter{Formatting Tips and Tricks}
+
+\backmatter % starts unnumbered supplementary material
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% unsorted BibTeX style
+% check here for more:  https://www.sharelatex.com/learn/Bibtex_bibliography_styles
+\bibliographystyle{unsrt}
+\bibliography{sample} % change readme to the name of your .tex file
+
+\appendix % starts the appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Test Appendix}
+\label{appendix:cryptic}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lipsum
+
+% Have a nice day!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
