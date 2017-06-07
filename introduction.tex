@@ -1,0 +1,84 @@
+\chapter{Introduction}
+\label{chap:intro}
+
+Many processes in the cell rely on proteins, which facilitate these processes via their interactions with one another and other components within the cell. 
+(mention protein interaction networks?)
+A more complete understanding of how proteins interact with one another (via an interface) can provide insight into certain diseases, aide pharmaceutical research, and improve understanding of complex cellular processes. 
+(protein interactions typically involve 2 proteins?)
+Experimentally identifying the interface between two proteins involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and inference of 3D protein structure from electron densities.
+This process is expensive and time consuming, so biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein. 
+Such "docking" methods exist, but are often based on energy minimization techniques which are computationally expensive and sometimes suboptimal (check/cite?).
+Some docking methods (cite) allow the inclusion of additional information about the protein interface in order to help bias the docking towards a correct solution. 
+Such information can be in the form of amino acid pairs, one from each protein, which are believed to constitute part of the interface. 
+
+The work described in this paper describes a novel method of predicting which amino acid pairs are believed to constitute part of the protein interface, which is inspired by the success of convolutional neural networks in image processing.
+
+\section{Proteins}
+
+Proteins are composed of amino acids linked together in a polypeptide chain held together by covalent bonds.
+Amino acids are organic compounds consisting of a central carbon atom (denoted the \{alpha}-carbon), which bonds to an amine group, a carboxyl group, and a so-called side chain, and a hydrogen atom in a tetrahedral configuration (figure?).
+There are 20 different types of amino acid which are determined by the structure of their side chain, which gives rise to different structural and electro-chemical properties. (table?)
+Each of the 20 amino acid types has a single letter designation for short-hand reference, which is particularly useful when enumerating a protein's sequence. 
+Amino acids may link together when the Nitrogen from one protein's amine group bonds covalently with the Carbon of another protein's carboxyl group, releasing a water molecule in the process.
+This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an amino acid \textit{residue}.
+
+A \textit{peptide} (or \textit{peptide chain})is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the \{alpha}-carbons.
+A protein consists of several amino acid residues in a peptide chain which has the more specific designation of \textit{polypeptide}.
+All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis. (is this true?)
+The \textit{N-terminus} is the first amino acid residue to be synthesized (true?) and has a free amine group, whereas the \textit{C-terminus} is the last to be synthesized (true?) and has a free carboxyl group. 
+
+
+The side chain can influence how an amino acid interacts with other amino acids or other types of molecules. For example, oppositely charged side chains will be attracted to each other, and polar and non-polar side chains will not strongly interact with each other. 
+Such interactions occur between residue side chains in a protein, which influence both the folding of the protein into a 3d structure and the protein’s proclivity to interact with other proteins.
+
+(describe domains or motifs?)
+(mention globular proteins vs other kinds?)
+
+
+\subsection{Protein Structure}
+
+There are multiple ways to describe protein structure, each operating at a different level of abstraction. 
+
+\textit{Primary structure} refers to the sequence of amino acid residues (from N-terminus to C-terminus) in a single polypeptide chain, and is determined by the sequence of codons in the corresponding coding mRNA from which the protein is translated. 
+
+The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent \{alpha}-carbons, all lie within a plane, denoted the \textit{amide plane}.
+Each \{alpha}-carbon lie on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
+Their relative orientation is described by two angles, \{psi} and \{phi}, which describe the rotation of each plane with respect to the \{alpha}-carbon's tetrahedral configuration. (figure?)
+In some cases, side chains prohibit certain angle values due to \{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
+The angles \{phi} and \{psi} allow a certain amount of flexibility in a peptide backbone, which gives rise to higher order structures.
+
+\textit{Secondary structure} describes the common local structures that arise from the interaction of non-adjacent residues.
+There are three such categories of local structures: helices, sheets, and "other".
+A helix occurs when the polypeptide chain coils into a barrel like structure (like the threads of a screw) and residues from adjacent coils form hydrogen bonds with one another.
+There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues, but by far the most common type is the \{alpha}-helix, corresponding to a sequence distance of (???). (figure?)
+A sheet occurs when a two non-adjacent sections of the polypeptide align next to each other such that residues in one of the sections form hydrogen bonds with residues in the other section.
+Sheets may be parallel, in which the "upstream" portion of each section bond with each other as well as the downstream" portions, or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa. (figure?)
+In either case, these are referred to as \{beta}-sheets. 
+The third category of local structure is reserved for those sections of of the polypeptide which are neither part of a helix nor part of a sheet.
+These sections are more flexible than helices or sheets due the lack of hydrogen bonds, and therefore are useful in connecting the end of one helix/sheet to the beginning of another. 
+
+Helices and sheets provide some rigidity to the polypeptide chain, but it typically further "folds" together into a globular structure. This resulting 3D structure is considered the \textit{tertiary structure} of a protein. 
+
+Finally, it is common for multiple polypeptide chains combine together into a complex.
+Because a polypeptide complex may perform a singular function that is not achievable by each of its constituent chains, it is sometimes referred to as a single protein. 
+In this case, the \textit{quaternary structure} describes the manner in which the individual polypeptide chains combine together to form the complex. 
+
+
+The set of pairs of residues (one from each protein) which bind two protein strands together constitute the interface of the proteins.
+
+\section{Protein Interface Prediction}
+
+protein interfaces: interaction of individual amino acids. requires electrochemical and geometric complementarity in local neighborhood of AA's. In practice, interfaces are identified by proximity. For this work, two amino acids assumed to be interacting if they are within 6 \AA (why?). (Talk about multiple partners?)
+
+Proteins often undergo conformational change when they bind. makes it difficult to predict interfaces from unbound formation (geometry)
+
+There is a spatial correlation. if a given AA is part of an interface, it's more likely it's neighbor will also be a part of the interface. 
+
+partner independent prediction: considers one protein at a time. predict whether a given AA is likely to form an interface or not. does not consider partners. (why would this be interesting?)
+
+partner specific prediction: considers pairs of proteins, predicts whether a given pair of AA, one from each protein, will interact with one another and form part of an interface. Relevant to researchers
+
+Biologists ultimately interested in predicting 3D structure of a bound formation
+
+
+\section{Deep Learning}
