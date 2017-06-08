@@ -1,7 +1,7 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-Many processes in the cell rely on proteins, which facilitate these processes via their interactions with one another and other components within the cell. 
+Many processes in a cell rely on proteins, which facilitate these processes via their interactions with one another and other components within the cell. 
 (mention protein interaction networks?)
 A more complete understanding of how proteins interact with one another (via an interface) can provide insight into certain diseases, aide pharmaceutical research, and improve understanding of complex cellular processes. 
 (protein interactions typically involve 2 proteins?)
@@ -16,13 +16,13 @@ The work described in this paper describes a novel method of predicting which am
 \section{Proteins}
 
 Proteins are composed of amino acids linked together in a polypeptide chain held together by covalent bonds.
-Amino acids are organic compounds consisting of a central carbon atom (denoted the \{alpha}-carbon), which bonds to an amine group, a carboxyl group, and a so-called side chain, and a hydrogen atom in a tetrahedral configuration (figure?).
+Amino acids are organic compounds consisting of a central carbon atom (denoted the $\alpha$-carbon), which bonds to an amine group, a carboxyl group, and a so-called side chain, and a hydrogen atom in a tetrahedral configuration (figure?).
 There are 20 different types of amino acid which are determined by the structure of their side chain, which gives rise to different structural and electro-chemical properties. (table?)
 Each of the 20 amino acid types has a single letter designation for short-hand reference, which is particularly useful when enumerating a protein's sequence. 
 Amino acids may link together when the Nitrogen from one protein's amine group bonds covalently with the Carbon of another protein's carboxyl group, releasing a water molecule in the process.
 This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an amino acid \textit{residue}.
 
-A \textit{peptide} (or \textit{peptide chain})is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the \{alpha}-carbons.
+A \textit{peptide} (or \textit{peptide chain})is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the $\alpha$-carbons.
 A protein consists of several amino acid residues in a peptide chain which has the more specific designation of \textit{polypeptide}.
 All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis. (is this true?)
 The \textit{N-terminus} is the first amino acid residue to be synthesized (true?) and has a free amine group, whereas the \textit{C-terminus} is the last to be synthesized (true?) and has a free carboxyl group. 
@@ -41,19 +41,19 @@ There are multiple ways to describe protein structure, each operating at a diffe
 
 \textit{Primary structure} refers to the sequence of amino acid residues (from N-terminus to C-terminus) in a single polypeptide chain, and is determined by the sequence of codons in the corresponding coding mRNA from which the protein is translated. 
 
-The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent \{alpha}-carbons, all lie within a plane, denoted the \textit{amide plane}.
-Each \{alpha}-carbon lie on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
-Their relative orientation is described by two angles, \{psi} and \{phi}, which describe the rotation of each plane with respect to the \{alpha}-carbon's tetrahedral configuration. (figure?)
-In some cases, side chains prohibit certain angle values due to \{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
-The angles \{phi} and \{psi} allow a certain amount of flexibility in a peptide backbone, which gives rise to higher order structures.
+The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent $\alpha$-carbons, all lie within a plane, denoted the \textit{amide plane}.
+Each $\alpha$-carbon lie on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
+Their relative orientation is described by two angles, $\psi$ and $\phi$, which describe the rotation of each plane with respect to the $\alpha$-carbon's tetrahedral configuration. (figure?)
+In some cases, side chains prohibit certain angle values due to \textit{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
+The angles $\phi$ and $\psi$ allow a certain amount of flexibility in a peptide backbone, which gives rise to higher order structures.
 
 \textit{Secondary structure} describes the common local structures that arise from the interaction of non-adjacent residues.
 There are three such categories of local structures: helices, sheets, and "other".
 A helix occurs when the polypeptide chain coils into a barrel like structure (like the threads of a screw) and residues from adjacent coils form hydrogen bonds with one another.
-There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues, but by far the most common type is the \{alpha}-helix, corresponding to a sequence distance of (???). (figure?)
+There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues, but by far the most common type is the $\alpha$-helix, corresponding to a sequence distance of (???). (figure?)
 A sheet occurs when a two non-adjacent sections of the polypeptide align next to each other such that residues in one of the sections form hydrogen bonds with residues in the other section.
 Sheets may be parallel, in which the "upstream" portion of each section bond with each other as well as the downstream" portions, or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa. (figure?)
-In either case, these are referred to as \{beta}-sheets. 
+In either case, these are referred to as $\beta$-sheets. 
 The third category of local structure is reserved for those sections of of the polypeptide which are neither part of a helix nor part of a sheet.
 These sections are more flexible than helices or sheets due the lack of hydrogen bonds, and therefore are useful in connecting the end of one helix/sheet to the beginning of another. 
 
@@ -64,21 +64,75 @@ Because a polypeptide complex may perform a singular function that is not achiev
 In this case, the \textit{quaternary structure} describes the manner in which the individual polypeptide chains combine together to form the complex. 
 
 
-The set of pairs of residues (one from each protein) which bind two protein strands together constitute the interface of the proteins.
 
-\section{Protein Interface Prediction}
+\subsection{Protein Interface Prediction}
 
-protein interfaces: interaction of individual amino acids. requires electrochemical and geometric complementarity in local neighborhood of AA's. In practice, interfaces are identified by proximity. For this work, two amino acids assumed to be interacting if they are within 6 \AA (why?). (Talk about multiple partners?)
+The locus of protein interaction is the interface, which is comprised of pairs of residues, one from each interacting protein, which interact with one another and bind the two proteins together.
+Such interaction between residues requires electrochemical and geometric compatibility in the local neighborhood of a residue pair.
+For example, like-charged residues will be counter-conducive to the formation of an interface due to mutual repulsion.
 
-Proteins often undergo conformational change when they bind. makes it difficult to predict interfaces from unbound formation (geometry)
+Historically, there have been two variants of the protein interface prediction problem: \textit{partner independent} and \textit{partner specific}.
+The former variant considers a single residue from a single protein and attempts to answer the question: will this residue form a part of an interface with any protein? (check this)
+The latter variant considers pairs of residues, each from a different protein, and attempts to answer a more specific question: does this \textit{pair} of residues constitute part of an interface between these two specific proteins. 
+The pairwise nature of partner specific prediction poses additional challenges when developing methods to answer the research question, but considering a residue pair instead of a single residue accounts for the potential compatibility of the residues to each other.
+It is also arguably more relevant to a biologist, because it specifically identifies a piece of the interface in the form of a residue pair, instead of just given single residue recommendations from each interacting protein. 
 
-There is a spatial correlation. if a given AA is part of an interface, it's more likely it's neighbor will also be a part of the interface. 
+Interfaces exhibit a local spatial correlation, where a residue is more likely to be a part of an interface if other nearby residues are also a part of an interface. 
+In some cases, proteins undergo conformational change when binding because the presence of another protein changes the most energetically favorable state. 
+In fact, sometimes this conformational change can actually facilitate the function of a protein or complex.
+Local spatial correlation can aide prediction if information from nearby residues is taken into account during prediction.
+On the other hand, conformational change can hinder prediction since the bound conformation is not known a priori and so the prediction must be made on the basis of the unbound protein formations. 
 
-partner independent prediction: considers one protein at a time. predict whether a given AA is likely to form an interface or not. does not consider partners. (why would this be interesting?)
+Methods of interface prediction include \textit{docking methods}(cite), \textit{template-based methods}(cite), and \textit{machine learning methods}.
 
-partner specific prediction: considers pairs of proteins, predicts whether a given pair of AA, one from each protein, will interact with one another and form part of an interface. Relevant to researchers
+Docking methods predict the 3d bound formation of two proteins in a complex and extract the interface from the predicted formation. 
+These methods typically involve modeling the protein system electrical potential(check?) caused by each atom in the proteins, and performing an iterative optimization algorithm to identify a configuration which minimizes the energy of the system. (more detail here and fact check)
+Unlike template and machine learning methods, docking methods do not require a library of known interfaces in order to make predictions.
 
-Biologists ultimately interested in predicting 3D structure of a bound formation
+Template based methods make predictions based on similarity to a known template protein complex. 
+The protein of interest is compared to a library of proteins whose interface is known, and the interface for the protein of interest is predicted using the interfaces of similar proteins (more detail here and fact check).
+
+Machine learning methods attempt to directly predict the interface rather than comparing against a template complex or predicting the bound formation, however they still use information from a library of complexes whose interfaces are known.
+Machine learning approaches have included use of a neural network (cite) and a support vector machine(cite). (more detail here and fact check)
+The SVM based approach is called PArtner-specific Interacting Residue PREDictor (PAIRpred) (cite), and utilizes multiple radial basis function kernels. 
+PAIRpred incorporates both sequence and structural information of residues, and uses pairwise kernels which operate on pairwise residues.
+The method performs well compared to existing docking and machine learning methods (how about template based methods?).
+
+(Talk about neural network approach)
 
 
-\section{Deep Learning}
+The work described in this paper performs partner specific interface prediction using a more sophisticated neural network architecture than previous methods. 
+
+
+\section{Artificial Neural Networks}
+
+\textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithm which are loosely inspired by neuroscientific models of how biological neural networks operate. 
+Conceptually, a (artificial) neural network represents a parameterized function that is applied to an input data vector which produces an output, which may be a vector or scalar. 
+
+(equation)
+
+This function can be decomposed into a sequence of \textit{layers}, each of which performs a relatively simple mathematical operation on its input to produce a an output.
+The first layer is taken to be the input data, and the output of the last layer is taken to be the output of the network. 
+All intermediate layers are termed \textit{hidden layers}, each of which accepting the output of the prior layer, performing a mathematical operation, and passing the output to the subsequent layer.
+The number of layers in a neural network is taken to be its \textit{depth}.
+The operations at each layer commonly take the form of a matrix multiplication, where a matrix of weights is multiplied by the input vector to produce an output vector.
+The number of outputs of a given layer is also denoted the number of \textit{units} in that layer. 
+It is also common to include a bias term in each layer and to apply some sort of nonlinear function elementwise on the output.
+Despite being conceptually simple, it has been proven that this formulation of artificial neural networks can approximate any function, provided it has enough units (look this up, check details and cite).
+
+The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function. 
+For feed forward neural networks, this is accomplished through a supervised training algorithm called backpropagation. 
+
+(write about backpropagation)
+(write about overfitting, etc?)
+
+In recent years (cite), more advanced methods for neural networks have demonstrated success in sophisticated tasks, particularly for image related tasks (cite). 
+These advances were catalyzed by the availability of large volumes of labeled image data and the improvements in computing power from, for example, general purpose graphical processing units (GP-GPUs) and distributed systems.
+These factors allowed experimentation in larger networks and more complicated layer operations, to include convolutional layers.
+
+Okay, here we go...
+
+
+
+
+
