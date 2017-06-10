@@ -1,29 +1,37 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-Many processes in a cell rely on proteins, which facilitate these processes via their interactions with one another and other components within the cell. 
-(mention protein interaction networks?)
-A more complete understanding of how proteins interact with one another (via an interface) can provide insight into certain diseases, aide pharmaceutical research, and improve understanding of complex cellular processes. 
-(protein interactions typically involve 2 proteins?)
-Experimentally identifying the interface between two proteins involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and inference of 3D protein structure from electron densities.
-This process is expensive and time consuming, so biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein. 
-Such "docking" methods exist, but are often based on energy minimization techniques which are computationally expensive and sometimes suboptimal (check/cite?).
-Some docking methods (cite) allow the inclusion of additional information about the protein interface in order to help bias the docking towards a correct solution. 
-Such information can be in the form of amino acid pairs, one from each protein, which are believed to constitute part of the interface. 
+We vs. I?
 
-The work described in this paper describes a novel method of predicting which amino acid pairs are believed to constitute part of the protein interface, which is inspired by the success of convolutional neural networks in image processing.
+Many cellular processes rely on proteins, which facilitate these processes via their interactions with one another and other elements within the cell. 
+(mention protein interaction networks?)
+A more complete understanding of how proteins interact with one another can provide insight into certain diseases, aide pharmaceutical research, and improve our understanding of complex cellular processes. 
+Proteins interact with one another (typically in pairs) via an \textit{interface}, which is comprised of the components in each protein which participate in the interaction.
+Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and sequence structure alignment using the electron densities.
+Biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein, because it would help to suggest unforeseen interfaces which could help guide wet lab experiments.
+Such methods exist, but are often based on energy minimization techniques which are computationally expensive and sometimes suboptimal (check/cite?).
+Some methods allow the inclusion of additional information about the protein interface in order to help bias the algorithm towards a correct solution. (cite?)
+Such information can be in the form of amino acid pairs, one from each protein, which are believed to constitute part of the interface.
+
+The work described in this paper describes a novel method of predicting which amino acid pairs are believed to constitute part of the protein interface, which is inspired by the success of convolutional neural networks in image processing. 
+We represent proteins as graphs and define a convolution operation which receptive field is a subgraph of the protein graph.
+Our neural networks convolve over each protein and make predictions on pairs of amino acids of the likelihood that they constitute a part of the interface. 
 
 \section{Proteins}
 
-Proteins are composed of amino acids linked together in a polypeptide chain held together by covalent bonds.
-Amino acids are organic compounds consisting of a central carbon atom (denoted the $\alpha$-carbon), which bonds to an amine group, a carboxyl group, and a so-called side chain, and a hydrogen atom in a tetrahedral configuration (figure?).
-There are 20 different types of amino acid which are determined by the structure of their side chain, which gives rise to different structural and electro-chemical properties. (table?)
-Each of the 20 amino acid types has a single letter designation for short-hand reference, which is particularly useful when enumerating a protein's sequence. 
-Amino acids may link together when the Nitrogen from one protein's amine group bonds covalently with the Carbon of another protein's carboxyl group, releasing a water molecule in the process.
+If DNA is the blueprint of life, then proteins are the realization of those blueprints.
+In other words, the information contained in DNA is ultimately used to synthesize proteins.
+
+Proteins are composed of amino acids linked in a chain and held together by covalent bonds.
+Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group, a carboxyl group, a single hydrogen atom, and a so-called side chain, in a tetrahedral configuration (figure?).
+There are 20 different types of amino acid, each of which has a different side chain structure which gives rise to distinct structural and electro-chemical properties. (table?)
+
+Amino acids link together when the nitrogen atom from one protein's amine group bonds covalently with the carbon atom of another protein's carboxyl group, releasing a water molecule in the process.
 This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an amino acid \textit{residue}.
 
-A \textit{peptide} (or \textit{peptide chain})is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the $\alpha$-carbons.
-A protein consists of several amino acid residues in a peptide chain which has the more specific designation of \textit{polypeptide}.
+A \textit{peptide}, or \textit{peptide chain}, is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the $\alpha$-carbons.
+If a peptide contains several residues it is referred to as a \textit{polypeptide}.
+Proteins consist of one or more polypeptide chains which are connected together.
 All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis. (is this true?)
 The \textit{N-terminus} is the first amino acid residue to be synthesized (true?) and has a free amine group, whereas the \textit{C-terminus} is the last to be synthesized (true?) and has a free carboxyl group. 
 
@@ -40,6 +48,7 @@ Such interactions occur between residue side chains in a protein, which influenc
 There are multiple ways to describe protein structure, each operating at a different level of abstraction. 
 
 \textit{Primary structure} refers to the sequence of amino acid residues (from N-terminus to C-terminus) in a single polypeptide chain, and is determined by the sequence of codons in the corresponding coding mRNA from which the protein is translated. 
+Each of the 20 amino acid types has a single letter designation for short-hand reference, which is particularly useful when enumerating a protein's sequence.
 
 The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent $\alpha$-carbons, all lie within a plane, denoted the \textit{amide plane}.
 Each $\alpha$-carbon lie on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
@@ -108,6 +117,7 @@ The work described in this paper performs partner specific interface prediction 
 
 \textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithm which are loosely inspired by neuroscientific models of how biological neural networks operate. 
 Conceptually, a (artificial) neural network represents a parameterized function that is applied to an input data vector which produces an output, which may be a vector or scalar. 
+For example, the input vector may be pixel values in an image of interest, and the output function may be a label applied to that image that indicates its content.
 
 (equation)
 
@@ -116,8 +126,13 @@ The first layer is taken to be the input data, and the output of the last layer 
 All intermediate layers are termed \textit{hidden layers}, each of which accepting the output of the prior layer, performing a mathematical operation, and passing the output to the subsequent layer.
 The number of layers in a neural network is taken to be its \textit{depth}.
 The operations at each layer commonly take the form of a matrix multiplication, where a matrix of weights is multiplied by the input vector to produce an output vector.
-The number of outputs of a given layer is also denoted the number of \textit{units} in that layer. 
-It is also common to include a bias term in each layer and to apply some sort of nonlinear function elementwise on the output.
+This is called a \textit{dense layer}, and mathematically takes the form:
+
+(equation). (include period)
+
+The number of outputs of a given layer is also denoted the number of \textit{units} (or "neurons") in that layer.
+This interpretation indicates that each unit in a layer takes a weighted sum of the inputs (or outputs from the previous layer), with each unit having a different set of weights for each input. 
+It is also common to include a bias term in each layer and to apply some sort of nonlinear function elementwise on the weighted sum, and the result is considered the \textit{signal} of the layer.
 Despite being conceptually simple, it has been proven that this formulation of artificial neural networks can approximate any function, provided it has enough units (look this up, check details and cite).
 
 The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function. 
@@ -128,9 +143,44 @@ For feed forward neural networks, this is accomplished through a supervised trai
 
 In recent years (cite), more advanced methods for neural networks have demonstrated success in sophisticated tasks, particularly for image related tasks (cite). 
 These advances were catalyzed by the availability of large volumes of labeled image data and the improvements in computing power from, for example, general purpose graphical processing units (GP-GPUs) and distributed systems.
-These factors allowed experimentation in larger networks and more complicated layer operations, to include convolutional layers.
+These factors allowed experimentation with larger networks and more complicated layer operations, to include convolutional layers.
 
-Okay, here we go...
+(describe dense layers?)
+
+\subsection{Convolutional Neural Networks}
+
+Traditionally, neural networks do not explicitly account for inherent structure in the inputs which may be useful when approximating the output function.
+For example, pixels in an image are often spatially correlated, but spatial information is not explicitly given to the network.
+Convolution layers are one way to incorporate spatial information in a neural network. 
+The name comes from an interpretation of how they operate on a set of inputs with a well defined grid structure, such as a pixelated image or discrete time series, where a filter of weights (e.g. 3x3 pixels for images) is convolved over the input grid.
+That is, at each position, the filter weights are multiplied with the corresponding inputs, called the \textit{receptive field}, and summed to produce a scalar value.
+As with simpler layers, the output is often passed through a nonlinear function
+Because each filter multiplication is associated with a position of the input grid, the output retains a grid structure. 
+In color images, each pixel has multiple values associated with it which capture color information, often referred to as \textit{channels}, and the filter typically has the same number of channels as the input. 
+A convolutional layer may contain multiple filters, each of which produces a grid of scalar values which can be considered a channel in the output.
+The weights in a filter determine the which inputs produce a larger signal and which do not, so a filter can be viewed as detecting certain patterns in the input.
+An alternate interpretation of convolutional layers is that weights are being shared across a layer such that each unit in the convolutional layer receives inputs form a different localized region of the input, and that all units share weights. 
+
+(equation)
+(figure of convolution?)
+
+
+Convolutional layers exhibit certain properties which aide in the classification tasks.
+\textit{local pattern detection}: convolutional filters are usually significantly smaller than the size of the input, so for any given position of the filter they are operating on a local neighborhood of the input. 
+\textit{global application}: since filters are convolved over the input, local patterns can be detected no matter where they occur in the input.
+\textit{stackability}: the output of a neural network retains the same grid structure as the input, so convolutional layers can be stacked together.
+The receptive field of a unit in a stacked layer consists of units in the prior convolutional layer, each of which has its own receptive field in the input.
+Hence stacked layers have effectively larger receptive fields on the original input, and are therefore able to detect larger patterns in the original input which are typically more sophisticated.
+Stacked convolutions on images have demonstrated an ability to learn a conceptual hierarchy of patterns in the input, from simple textures and edges to complex objects like faces or vehicles. 
+\textit{robustness to overfitting}: the weight sharing inherent in convolutional layers means there are fewer trainable weights compared to a dense layer with the same number of hidden units. 
+This reduces the propensity of the network to overfit to the training data and improves its ability to generalize to unseen examples.
+
+Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a small region of a grid (e.g. 2x2 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
+Pooling allows downsampling of the grid, and is often performed in between convolutional layers. 
+
+The convolutions described above can only operate on a regular grid. 
+Proteins, however, have inherently irregular structure. 
+In this work we adapt the notion of convolution to work with irregular structures, which are represented as graphs. 
 
 
 
