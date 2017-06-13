@@ -6,7 +6,7 @@ Many cellular processes rely on proteins, which facilitate these processes via t
 A more complete understanding of how proteins interact with one another can provide insight into certain diseases, aide pharmaceutical research~\cite{fauman2003}, and improve our understanding of complex cellular processes~\cite{altman2003}.
 Proteins normally interact with one another in pairs, via an \textit{interface} which is comprised of amino acid residues in each protein which participate in the interaction.
 Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and sequence-structure alignment. 
-Biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein, because they may detect unforeseen interfaces and inform wet lab experiments.
+\textit{In silico} methods to predict the 3D structure given information about each constituent protein, may detect unforeseen interfaces and help inform the potential relevance of various wet lab experiments.
 Such methods exist, but are often based on energy minimization techniques which are computationally expensive \cite{esmaielbeiki2015}.
 Some of these methods (Haddock~\cite{zundert2016} for example) allow the user to suggest amino acid residues which are likely part of the interface, to help bias the algorithm towards a correct solution.
 This has motivated work to predict amino acid pairs which constitute part of the interface without solving for the entire 3D structure at once. 
@@ -23,9 +23,20 @@ Chapter \ref{chap:methods} describes our graph convolutional networks and the de
 
 DNA is often considered the "blueprint for life". 
 In that case, proteins are the physical realization of those blueprints.
-In other words, the information contained in DNA genes is ultimately used to synthesize proteins.
+In other words, the information contained in DNA is ultimately used to synthesize proteins.
 Proteins are composed of amino acids linked in a chain and held together by covalent bonds.
-Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group ($NH_2$), a carboxyl group ($COOH$), a single hydrogen atom, and a so-called side chain, in a tetrahedral configuration (figure?).
+Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group ($NH_2$), a carboxyl group ($COOH$), a single hydrogen atom, and a so-called side chain, in a tetrahedral geometry.
+
+\begin{figure}
+	\centering
+	%\begin{center}
+	\includegraphics[width=0.5\textwidth]{wiley_liss_structural_bioinformatics_amino_acids.png}
+	%\end{center}
+	\caption{\small Graph convolution on protein structures.  Left:  Each residue in a protein is a node in a graph where the neighborhood of a node is the set of neighboring nodes in the protein structure; each node has features computed from its amino acid sequence and structure, and edges have features describing the relative distance and angles between residues.  Right:  Schematic description of the convolution operator which has as its receptive field a set of neighboring residues, and produces an activation which is associated with its center residue.}
+	\label{fig:graph_rep}
+\end{figure}
+
+%TODO:figure?
 There are 20 different types of amino acid, each of which has a different side chain structure which gives rise to distinct structural and electro-chemical properties. (table?)
 
 Amino acids link together when the nitrogen atom from one protein's amine group bonds covalently with the carbon atom of another protein's carboxyl group, releasing a water molecule in the process.
@@ -55,7 +66,7 @@ Sequences are typically written using a string of letters, where each unique let
 
 The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent $\alpha$-carbons, all lie within a plane, denoted the \textit{amide plane}.
 Each $\alpha$-carbon lies on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
-Their relative orientation is described by two angles, $\psi$ and $\phi$, which describe the rotation of each plane with respect to the $\alpha$-carbon's tetrahedral configuration. (figure?)
+Their relative orientation is described by two angles, $\psi$ and $\phi$, which describe the rotation of each plane with respect to the $\alpha$-carbon's tetrahedral geometry. (figure?)
 In some cases, side chains prohibit certain angles due to \textit{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
 The angles $\phi$ and $\psi$ allow a certain amount of flexibility in the peptide backbone, which gives rise to higher order structures.
 
