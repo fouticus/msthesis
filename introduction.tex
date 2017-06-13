@@ -1,101 +1,109 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-We vs. I?
-
 Many cellular processes rely on proteins, which facilitate these processes via their interactions with one another and other elements within the cell. 
-(mention protein interaction networks?)
-A more complete understanding of how proteins interact with one another can provide insight into certain diseases, aide pharmaceutical research, and improve our understanding of complex cellular processes. 
-Proteins interact with one another (typically in pairs) via an \textit{interface}, which is comprised of the components in each protein which participate in the interaction.
-Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and sequence structure alignment using the electron densities.
-Biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein, because it would help to suggest unforeseen interfaces which could help guide wet lab experiments.
-Such methods exist, but are often based on energy minimization techniques which are computationally expensive and sometimes suboptimal (check/cite?).
-Some methods allow the inclusion of additional information about the protein interface in order to help bias the algorithm towards a correct solution. (cite?)
-Such information can be in the form of amino acid pairs, one from each protein, which are believed to constitute part of the interface.
+%TODO: mention protein interaction networks?
+A more complete understanding of how proteins interact with one another can provide insight into certain diseases, aide pharmaceutical research~\cite{fauman2003}, and improve our understanding of complex cellular processes~\cite{altman2003}.
+Proteins normally interact with one another in pairs, via an \textit{interface} which is comprised of amino acid residues in each protein which participate in the interaction.
+Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex, imaging via x-ray crystallography or nuclear magnetic resonance, and sequence-structure alignment. 
+Biologists could benefit from \textit{in silico} methods which predict the 3D structure given information about each constituent protein, because they may detect unforeseen interfaces and inform wet lab experiments.
+Such methods exist, but are often based on energy minimization techniques which are computationally expensive \cite{esmaielbeiki2015}.
+Some of these methods (Haddock~\cite{zundert2016} for example) allow the user to suggest amino acid residues which are likely part of the interface, to help bias the algorithm towards a correct solution.
+This has motivated work to predict amino acid pairs which constitute part of the interface without solving for the entire 3D structure at once. 
 
-The work described in this paper describes a novel method of predicting which amino acid pairs are believed to constitute part of the protein interface, which is inspired by the success of convolutional neural networks in image processing. 
-We represent proteins as graphs and define a convolution operation which receptive field is a subgraph of the protein graph.
+This paper presents a novel method of predicting which amino acid pairs are part of the protein interface, which is inspired by the success of convolutional neural networks in image processing. 
+We represent proteins as graphs and define a convolution operation which receptive field is a local connected subgraph of the protein graph.
 Our neural networks convolve over each protein and make predictions on pairs of amino acids of the likelihood that they constitute a part of the interface. 
+Our method outperforms an existing approach based on a support vector machine which uses pairwise kernels~\cite{minhas2014}.
+The remainder of the introduction describes proteins and protein interface predtiction in more detail, and describes artificial neural networks in general, and convolutional neural networks specificially, as a primer for the graph convolutional networks presented in this paper.
+
+Chapter \ref{chap:methods} describes our graph convolutional networks and the deep learning architecture we used for interface prediction. Chapter \ref{chap:experiments} describes the data set and experiments performed and presents our findings. Chapter \ref{chap:future} lays out potential avenues of research which build upon the findings in this paper. Appendix \ref{appendix:features} contains details pertaining to the features computed for each amino acid residue, and Appendix \ref{appendix:tools} describes the software and tools that were created and/or used for this research.
 
 \section{Proteins}
 
-If DNA is the blueprint of life, then proteins are the realization of those blueprints.
-In other words, the information contained in DNA is ultimately used to synthesize proteins.
-
+DNA is often considered the "blueprint for life". 
+In that case, proteins are the physical realization of those blueprints.
+In other words, the information contained in DNA genes is ultimately used to synthesize proteins.
 Proteins are composed of amino acids linked in a chain and held together by covalent bonds.
-Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group, a carboxyl group, a single hydrogen atom, and a so-called side chain, in a tetrahedral configuration (figure?).
+Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group ($NH_2$), a carboxyl group ($COOH$), a single hydrogen atom, and a so-called side chain, in a tetrahedral configuration (figure?).
 There are 20 different types of amino acid, each of which has a different side chain structure which gives rise to distinct structural and electro-chemical properties. (table?)
 
 Amino acids link together when the nitrogen atom from one protein's amine group bonds covalently with the carbon atom of another protein's carboxyl group, releasing a water molecule in the process.
-This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an amino acid \textit{residue}.
+This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an \textit{amino acid residue}, or \textit{residue}.
 
 A \textit{peptide}, or \textit{peptide chain}, is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the $\alpha$-carbons.
 If a peptide contains several residues it is referred to as a \textit{polypeptide}.
-Proteins consist of one or more polypeptide chains which are connected together.
+Proteins consist of one or more polypeptide which are bound together.
 All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis. (is this true?)
-The \textit{N-terminus} is the first amino acid residue to be synthesized (true?) and has a free amine group, whereas the \textit{C-terminus} is the last to be synthesized (true?) and has a free carboxyl group. 
+The first residue to be incorporated has a free amine group(true?) denoted the \textit{N-terminus}, whereas the last residue has a free carboxyl group(true?) denoted the \textit{C-terminus}.
 
 
-The side chain can influence how an amino acid interacts with other amino acids or other types of molecules. For example, oppositely charged side chains will be attracted to each other, and polar and non-polar side chains will not strongly interact with each other. 
-Such interactions occur between residue side chains in a protein, which influence both the folding of the protein into a 3d structure and the protein’s proclivity to interact with other proteins.
+A residue's side chain can influence how it interacts with other amino acids or other atoms and molecules. For example, oppositely charged side chains will be attracted to each other, and polar and non-polar side chains will not strongly interact with each other. 
+polar side chains are also called hydrophilic due to their affinity for water, and non-polar side chains are also called hydrophobic for the opposite reason.
+Residues in the same protein, by virtue of their spatial proximity, will tend to interact with one another. 
+This influences the folding of the protein into a 3d structure.
 
-(describe domains or motifs?)
-(mention globular proteins vs other kinds?)
+%TODO: describe domains or motifs?
+%TODO: mention globular proteins vs other kinds?
 
 
 \subsection{Protein Structure}
 
-There are multiple ways to describe protein structure, each operating at a different level of abstraction. 
-
-\textit{Primary structure} refers to the sequence of amino acid residues (from N-terminus to C-terminus) in a single polypeptide chain, and is determined by the sequence of codons in the corresponding coding mRNA from which the protein is translated. 
-Each of the 20 amino acid types has a single letter designation for short-hand reference, which is particularly useful when enumerating a protein's sequence.
+Protein structure can be described via four different layers of abstraction, each building upon the previous layer. 
+\textit{Primary structure} refers to the sequence of amino acid residues (from N-terminus to C-terminus) in a single polypeptide, and is determined by the sequence of codons in the corresponding coding mRNA from which the protein is translated.
+Sequences are typically written using a string of letters, where each unique letter corresponds to a different residue type. 
 
 The physical chemistry associated with peptide bonds gives rise to the property that the Nitrogen and Carbon atoms involved in the peptide bond, along with the adjacent $\alpha$-carbons, all lie within a plane, denoted the \textit{amide plane}.
-Each $\alpha$-carbon lie on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
+Each $\alpha$-carbon lies on the intersection between two amide planes, and the planes are free to rotate with respect to each other. 
 Their relative orientation is described by two angles, $\psi$ and $\phi$, which describe the rotation of each plane with respect to the $\alpha$-carbon's tetrahedral configuration. (figure?)
-In some cases, side chains prohibit certain angle values due to \textit{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
-The angles $\phi$ and $\psi$ allow a certain amount of flexibility in a peptide backbone, which gives rise to higher order structures.
+In some cases, side chains prohibit certain angles due to \textit{steric constraints}, which enforce that no two atoms may occupy the same volume of space at the same time.
+The angles $\phi$ and $\psi$ allow a certain amount of flexibility in the peptide backbone, which gives rise to higher order structures.
 
 \textit{Secondary structure} describes the common local structures that arise from the interaction of non-adjacent residues.
-There are three such categories of local structures: helices, sheets, and "other".
-A helix occurs when the polypeptide chain coils into a barrel like structure (like the threads of a screw) and residues from adjacent coils form hydrogen bonds with one another.
-There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues, but by far the most common type is the $\alpha$-helix, corresponding to a sequence distance of (???). (figure?)
-A sheet occurs when a two non-adjacent sections of the polypeptide align next to each other such that residues in one of the sections form hydrogen bonds with residues in the other section.
-Sheets may be parallel, in which the "upstream" portion of each section bond with each other as well as the downstream" portions, or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa. (figure?)
+There are three such categories of local structures: helices, sheets, and loops.
+A helix occurs when the polypeptide coils into a barrel-like structure (like the threads of a screw) and residues from adjacent coils form hydrogen bonds with one another.
+There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues.
+The most common type is the $\alpha$-helix, corresponding to a sequence distance of (???). (figure?)
+A sheet occurs when two non-adjacent sections of the polypeptide align next to each other such that residues in one of the sections form hydrogen bonds with residues in the other section.
+Sheets may be parallel, in which the upstream portion (nearer the N-terminus) of each section bond with each other as well as the downstream portions (nearer the C-terminus), or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa. (figure?)
 In either case, these are referred to as $\beta$-sheets. 
-The third category of local structure is reserved for those sections of of the polypeptide which are neither part of a helix nor part of a sheet.
+Some sections of the polypeptide may form neither helices nor sheets, and are sometimes called \textit{loops}.
 These sections are more flexible than helices or sheets due the lack of hydrogen bonds, and therefore are useful in connecting the end of one helix/sheet to the beginning of another. 
 
-Helices and sheets provide some rigidity to the polypeptide chain, but it typically further "folds" together into a globular structure. This resulting 3D structure is considered the \textit{tertiary structure} of a protein. 
+Helices and sheets provide some rigidity to a polypeptide, but it typically further "folds" together. This resulting 3D global structure is considered the \textit{tertiary structure} of a protein. 
 
-Finally, it is common for multiple polypeptide chains combine together into a complex.
-Because a polypeptide complex may perform a singular function that is not achievable by each of its constituent chains, it is sometimes referred to as a single protein. 
-In this case, the \textit{quaternary structure} describes the manner in which the individual polypeptide chains combine together to form the complex. 
+Finally, in some cases multiple polypeptides combine together into a complex.
+Because a polypeptide complex may perform a singular function that is not achievable by each of its constituent chains, it is sometimes referred to as a single protein.  (true?)
+In this case, the \textit{quaternary structure} describes the manner in which the individual polypeptides combine together to form the complex. 
 
 
 
-\subsection{Protein Interface Prediction}
+\subsection{Protein Interfaces and their Prediction}
 
 The locus of protein interaction is the interface, which is comprised of pairs of residues, one from each interacting protein, which interact with one another and bind the two proteins together.
 Such interaction between residues requires electrochemical and geometric compatibility in the local neighborhood of a residue pair.
-For example, like-charged residues will be counter-conducive to the formation of an interface due to mutual repulsion.
+For example, like-charged residues will be counter-conducive to the formation of an interface due to mutual repulsion, and opposite-charged residues will have the opposite effect.
+Polar residues are more likely to interact with other polar molecules than with non-polar molecules, and non-polar residues are more likely to interact with other non-polar molecules than polar ones.
+The notion of geometric compatibility suggests that portions of the interface on each protein should exhibit some form of shape complementarity with each other. 
+Because these factors are important in the formation of interfaces, they are also relevant to the prediction of interfaces.
 
 Historically, there have been two variants of the protein interface prediction problem: \textit{partner independent} and \textit{partner specific}.
-The former variant considers a single residue from a single protein and attempts to answer the question: will this residue form a part of an interface with any protein? (check this)
+The former variant considers a single residue from a single protein and attempts to answer the question: does this residue form a part of an interface with any protein? (check this)
 The latter variant considers pairs of residues, each from a different protein, and attempts to answer a more specific question: does this \textit{pair} of residues constitute part of an interface between these two specific proteins. 
-The pairwise nature of partner specific prediction poses additional challenges when developing methods to answer the research question, but considering a residue pair instead of a single residue accounts for the potential compatibility of the residues to each other.
-It is also arguably more relevant to a biologist, because it specifically identifies a piece of the interface in the form of a residue pair, instead of just given single residue recommendations from each interacting protein. 
+The pairwise nature of partner specific prediction poses technical challenges when developing methods to answer the research question, but considering a residue pair instead of a single residue allows the consideration of the compatibility of the pair.
+Partner specific prediction is also more relevant to a biologist, because it identifies a correspondence between the two proteins, rather than considering one protein at a time.
 
-Interfaces exhibit a local spatial correlation, where a residue is more likely to be a part of an interface if other nearby residues are also a part of an interface. 
+Interfaces exhibit a local spatial correlation in that a residue is more likely to be a part of an interface if nearby residues are also a part of the interface. 
+Local spatial correlation can aide prediction if information from nearby residues is taken into account during prediction.
+
 In some cases, proteins undergo conformational change when binding because the presence of another protein changes the most energetically favorable state. 
 In fact, sometimes this conformational change can actually facilitate the function of a protein or complex.
-Local spatial correlation can aide prediction if information from nearby residues is taken into account during prediction.
-On the other hand, conformational change can hinder prediction since the bound conformation is not known a priori and so the prediction must be made on the basis of the unbound protein formations. 
+This can hinder prediction since the bound conformation is not known a priori and so the prediction must be made on the basis of the unbound protein structures. 
 
 Methods of interface prediction include \textit{docking methods}(cite), \textit{template-based methods}(cite), and \textit{machine learning methods}.
 
-Docking methods predict the 3d bound formation of two proteins in a complex and extract the interface from the predicted formation. 
-These methods typically involve modeling the protein system electrical potential(check?) caused by each atom in the proteins, and performing an iterative optimization algorithm to identify a configuration which minimizes the energy of the system. (more detail here and fact check)
+Docking methods predict the 3D bound formation of two proteins in a complex and extract the interface from the predicted formation. 
+These methods typically involve modeling the protein system electrical potential(check?) caused by each atom in the proteins, and performing an optimization algorithm to identify a configuration which minimizes the energy of the system. (more detail here and fact check)
 Unlike template and machine learning methods, docking methods do not require a library of known interfaces in order to make predictions.
 
 Template based methods make predictions based on similarity to a known template protein complex. 
@@ -107,7 +115,7 @@ The SVM based approach is called PArtner-specific Interacting Residue PREDictor 
 PAIRpred incorporates both sequence and structural information of residues, and uses pairwise kernels which operate on pairwise residues.
 The method performs well compared to existing docking and machine learning methods (how about template based methods?).
 
-(Talk about neural network approach)
+%TODO: Talk about neural network approach
 
 
 The work described in this paper performs partner specific interface prediction using a more sophisticated neural network architecture than previous methods. 
@@ -138,14 +146,14 @@ Despite being conceptually simple, it has been proven that this formulation of a
 The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function. 
 For feed forward neural networks, this is accomplished through a supervised training algorithm called backpropagation. 
 
-(write about backpropagation)
-(write about overfitting, etc?)
+%TODO: write about backpropagation
+%TODO: write about overfitting, etc?
 
 In recent years (cite), more advanced methods for neural networks have demonstrated success in sophisticated tasks, particularly for image related tasks (cite). 
 These advances were catalyzed by the availability of large volumes of labeled image data and the improvements in computing power from, for example, general purpose graphical processing units (GP-GPUs) and distributed systems.
 These factors allowed experimentation with larger networks and more complicated layer operations, to include convolutional layers.
 
-(describe dense layers?)
+%TODO: describe dense layers?
 
 \subsection{Convolutional Neural Networks}
 

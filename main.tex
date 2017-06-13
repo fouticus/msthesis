@@ -135,14 +135,14 @@ All Rights reserved
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \abstract{%
-This document aims to get you started typesetting your thesis or dissertation in \LaTeX{}.  It serves both as a sample and as the documentation for this package.  Please review the entire document for helpful tips about formatting your thesis or dissertation.  You may replace this text with your abstract.
+Abstract goes here.
 }
 
 % Acknowledgments 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \acknowledgements{%
-
+Acknowledgements go here.
 }
 
 % Metadata
@@ -177,7 +177,11 @@ This document aims to get you started typesetting your thesis or dissertation in
 
 \input{introduction.tex}
 
-\input{graph_convolutions.tex}
+\input{methods.tex}
+
+\input{experiments.tex}
+
+\input{future.tex}
 
 
 *************************************************************
@@ -195,13 +199,16 @@ Let's cite a bunch of things \cite{forney20112749, cebl, forney2011thesis, forne
 % unsorted BibTeX style
 % check here for more:  https://www.sharelatex.com/learn/Bibtex_bibliography_styles
 \bibliographystyle{unsrt}
-\bibliography{sample} % change readme to the name of your .tex file
+\bibliography{biblio} % change readme to the name of your .tex file
 
 \appendix % starts the appendices
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Test Appendix}
-\label{appendix:code}
+\input{features.tex}
+
+\input{tools.tex}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
