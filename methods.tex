@@ -1,3 +1,56 @@
 \chapter{Methods}
 \label{chap:methods}
 
+desire: exploit local structure around a residue to help with interface prediction since we know biologically the neighborhood around a graph is relevant to interface likelihood.
+
+convolutional neural networks take advantage of local structure, but only work on regular grids
+
+proteins are irregular, so can't represent as a grid, but however, can be represented as graph, so we want to design convolutions to work on graphs. 
+
+\subsection{Proteins As Graphs}
+
+residue is basic element of information for interface prediction, represent as vertices
+- features associated with residue: based on sequence and structure (see appx)
+
+residues connected by edges
+- features represent relationships between residues, distance (many kinds), relative orientation (see appx)
+
+properties:
+- structural abstraction of original objects to a well studied mathematical object
+- no coordinate system necessary, makes sense because there is usually no inherent orientation to a protein
+- embedded in a metric space which can be useful when defining local neighborhoods
+
+\subsection{Prior Work in Graph Convolutions}
+identical graphs
+	- natural correspondence of neighborhoods and pooling operation is easy.
+	- does not apply for proteins.
+ordering 
+	- imposes correspondence on graph which may or not be natural. allows training filter weights that are specific to a particular location in the ordering (as with image convolutional filters).
+order free
+	- allow for different types of receptive fields but can't treat vertices differently based on their relationship to each other.
+	- only treats one relationship at a time (right?)
+alternative approaches to convolution:
+	- spectral methods, but scaling to large graphs difficult because factoring large matrices difficult.
+
+\subsection{Graph Convolutions}
+desired properties:
+- coordinate free (invariant to rotations or translations in space) - come free with graph representation
+- order free in neighbors
+- correspondence free (not all receptive fields will look the same)
+	- no correspondence required between neighbors in different receptive fields
+	- potentially different number of neighbors altogether
+	
+(math formulation, sum coupled and product coupled)
+
+comments
+- works with any size receptive field but retains neighbor specific characteristics using edge coupling.
+- requires no ordering of edges
+- can work with metric embedding graphs or not, just define a different receptive field. 
+- retains graph structure so it's stackable
+
+\subsection{Pairwise Deep Learning Architecture}
+convolve each protein in the pair individually (legs)
+select pairs of amino acids (representations) and combine together (we swap and average but could also combine symmetrically which is like pairwise kernels)
+dense layers, then binary read out layer
+
+implement dropout
