@@ -25,19 +25,22 @@ DNA is often considered the "blueprint for life".
 In that case, proteins are the physical realization of those blueprints.
 In other words, the information contained in DNA is ultimately used to synthesize proteins.
 Proteins are composed of amino acids linked in a chain and held together by covalent bonds.
-Amino acids are organic compounds consisting of a central "$\alpha$-carbon" atom, which bonds to an amine group ($NH_2$), a carboxyl group ($COOH$), a single hydrogen atom, and a so-called side chain, in a tetrahedral geometry.
+Amino acids are organic compounds consisting of a central \textit{$\alpha$-carbon} atom, which bonds to an amine group ($NH_2$), a carboxyl group ($COOH$), a single hydrogen atom, and a so-called side chain, in a tetrahedral geometry.
+Amino acids technically have two stereoisomers, the L and D forms, but only the L form has been found in biological organisms.
+
+There are 20 different types of amino acid, each of which has a different side chain structure which gives rise to distinct structural and electro-chemical properties. 
+Figure \ref{fig:aminoacids} depicts the different types of amino acids, taken from~\cite{scheeffink2003}.
+
+%TODO: copyright issues with  these figures?
 
 \begin{figure}
 	\centering
 	%\begin{center}
-	\includegraphics[width=0.5\textwidth]{wiley_liss_structural_bioinformatics_amino_acids.png}
+	\includegraphics[width=0.8\textwidth]{wiley_liss_structural_bioinformatics_amino_acids.png}
 	%\end{center}
-	\caption{\small Graph convolution on protein structures.  Left:  Each residue in a protein is a node in a graph where the neighborhood of a node is the set of neighboring nodes in the protein structure; each node has features computed from its amino acid sequence and structure, and edges have features describing the relative distance and angles between residues.  Right:  Schematic description of the convolution operator which has as its receptive field a set of neighboring residues, and produces an activation which is associated with its center residue.}
-	\label{fig:graph_rep}
+	\caption{The 20 types of amino acid, each with a distinct side chain. In this figure, the carboxyl group has lost a hydrogen leaving a negative charge, and the amine group has gained a hydrogen leaving a positive charge. The elements which make up a peptide backbone are highlighted in gray, in addition to the hydrogen which connects to the $\alpha$-carbon. The side chains give rise to various electrical properties, as indicated by the circumscriptions. Taken from~\cite{scheeffink2003}.}
+	\label{fig:aminoacids}
 \end{figure}
-
-%TODO:figure?
-There are 20 different types of amino acid, each of which has a different side chain structure which gives rise to distinct structural and electro-chemical properties. (table?)
 
 Amino acids link together when the nitrogen atom from one protein's amine group bonds covalently with the carbon atom of another protein's carboxyl group, releasing a water molecule in the process.
 This covalent bond is called a peptide bond, and an amino acid involved in at least one such bond is referred to as an \textit{amino acid residue}, or \textit{residue}.
@@ -45,14 +48,14 @@ This covalent bond is called a peptide bond, and an amino acid involved in at le
 A \textit{peptide}, or \textit{peptide chain}, is a linear chain of amino acids held together by peptide bonds, and the \textit{backbone} of the peptide consists of all atoms participating in peptide bonds together with the $\alpha$-carbons.
 If a peptide contains several residues it is referred to as a \textit{polypeptide}.
 Proteins consist of one or more polypeptide which are bound together.
-All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis. (is this true?)
-The first residue to be incorporated has a free amine group(true?) denoted the \textit{N-terminus}, whereas the last residue has a free carboxyl group(true?) denoted the \textit{C-terminus}.
+All peptides have a natural ordering of their amino acid residues defined by the order in which they were incorporated into the peptide during protein synthesis.
+The first residue to be incorporated has a free amine group denoted the \textit{N-terminus}, whereas the last residue has a free carboxyl group(true?) denoted the \textit{C-terminus}.
 
 
 A residue's side chain can influence how it interacts with other amino acids or other atoms and molecules. For example, oppositely charged side chains will be attracted to each other, and polar and non-polar side chains will not strongly interact with each other. 
 polar side chains are also called hydrophilic due to their affinity for water, and non-polar side chains are also called hydrophobic for the opposite reason.
 Residues in the same protein, by virtue of their spatial proximity, will tend to interact with one another. 
-This influences the folding of the protein into a 3d structure.
+This influences the folding of the protein into a 3D structure.
 
 %TODO: describe domains or motifs?
 %TODO: mention globular proteins vs other kinds?
@@ -73,20 +76,24 @@ The angles $\phi$ and $\psi$ allow a certain amount of flexibility in the peptid
 \textit{Secondary structure} describes the common local structures that arise from the interaction of non-adjacent residues.
 There are three such categories of local structures: helices, sheets, and loops.
 A helix occurs when the polypeptide coils into a barrel-like structure (like the threads of a screw) and residues from adjacent coils form hydrogen bonds with one another.
-There are multiple types of helices, each determined by the sequence-distance between to hydrogen bonded residues.
-The most common type is the $\alpha$-helix, corresponding to a sequence distance of (???). (figure?)
+There are multiple types of helices, each determined by the distance along the polypeptide backbone between the two hydrogen bonded residues.
+The most common type is the $\alpha$-helix, corresponding to a distance of 3. 
+%TODO: figure?
 A sheet occurs when two non-adjacent sections of the polypeptide align next to each other such that residues in one of the sections form hydrogen bonds with residues in the other section.
-Sheets may be parallel, in which the upstream portion (nearer the N-terminus) of each section bond with each other as well as the downstream portions (nearer the C-terminus), or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa. (figure?)
+Sheets may be parallel, in which the upstream portion (nearer the N-terminus) of each section bond with each other as well as the downstream portions (nearer the C-terminus), or anti-parallel, in which the upstream portion of one section is bonds with the downstream portion of the other section, and vice versa.
+%TODO: figure?
 In either case, these are referred to as $\beta$-sheets. 
 Some sections of the polypeptide may form neither helices nor sheets, and are sometimes called \textit{loops}.
-These sections are more flexible than helices or sheets due the lack of hydrogen bonds, and therefore are useful in connecting the end of one helix/sheet to the beginning of another. 
+These sections are more flexible than helices or sheets due the lack of hydrogen bonds, and therefore are useful in connecting the end of one helix/sheet to the beginning of another.
 
-Helices and sheets provide some rigidity to a polypeptide, but it typically further "folds" together. This resulting 3D global structure is considered the \textit{tertiary structure} of a protein. 
+Helices and sheets provide some rigidity to a polypeptide, but it typically further "folds" together into a 3D structure.
+This resulting 3D global structure is considered the \textit{tertiary structure} of a protein.
+Common collections of secondary structural elements are referred to as motifs and often have functional significance.
+Larger subsections of a protein which maintain their general structure even if separated from the rest of the protein are called domains. Both motifs play a significant role in protein function~\cite{scheeffink2003}.
 
 Finally, in some cases multiple polypeptides combine together into a complex.
-Because a polypeptide complex may perform a singular function that is not achievable by each of its constituent chains, it is sometimes referred to as a single protein.  (true?)
+Because a polypeptide complex may perform a singular function that is not achievable by each of its constituent chains, it is sometimes considered a single protein.
 In this case, the \textit{quaternary structure} describes the manner in which the individual polypeptides combine together to form the complex. 
-
 
 
 \subsection{Protein Interfaces and their Prediction}
@@ -99,10 +106,9 @@ The notion of geometric compatibility suggests that portions of the interface on
 Because these factors are important in the formation of interfaces, they are also relevant to the prediction of interfaces.
 
 Historically, there have been two variants of the protein interface prediction problem: \textit{partner independent} and \textit{partner specific}.
-The former variant considers a single residue from a single protein and attempts to answer the question: does this residue form a part of an interface with any protein? (check this)
-The latter variant considers pairs of residues, each from a different protein, and attempts to answer a more specific question: does this \textit{pair} of residues constitute part of an interface between these two specific proteins. 
-The pairwise nature of partner specific prediction poses technical challenges when developing methods to answer the research question, but considering a residue pair instead of a single residue allows the consideration of the compatibility of the pair.
-Partner specific prediction is also more relevant to a biologist, because it identifies a correspondence between the two proteins, rather than considering one protein at a time.
+The former variant considers a single residue from a protein and attempts to answer the question: does this residue form a part of an interface with a given partner protein?
+The latter variant considers pairs of residues, each from a different protein, and attempts to answer a more specific question: does this \textit{pair} of residues constitute part of an interface between the two proteins?
+The pairwise nature of partner specific prediction allows the consideration of the compatibility of a pair of residues, which has been found to increase performance\cite{ahmad2011}.
 
 Interfaces exhibit a local spatial correlation in that a residue is more likely to be a part of an interface if nearby residues are also a part of the interface. 
 Local spatial correlation can aide prediction if information from nearby residues is taken into account during prediction.
@@ -111,20 +117,21 @@ In some cases, proteins undergo conformational change when binding because the p
 In fact, sometimes this conformational change can actually facilitate the function of a protein or complex.
 This can hinder prediction since the bound conformation is not known a priori and so the prediction must be made on the basis of the unbound protein structures. 
 
-Methods of interface prediction include \textit{docking methods}(cite), \textit{template-based methods}(cite), and \textit{machine learning methods}.
+Methods of interface prediction include \textit{docking methods}, \textit{template-based methods}, and \textit{machine learning methods}.
 
 Docking methods predict the 3D bound formation of two proteins in a complex and extract the interface from the predicted formation. 
-These methods typically involve modeling the protein system electrical potential(check?) caused by each atom in the proteins, and performing an optimization algorithm to identify a configuration which minimizes the energy of the system. (more detail here and fact check)
-Unlike template and machine learning methods, docking methods do not require a library of known interfaces in order to make predictions.
+These methods often use energy minimization techniques which account for shape complementarity~\cite{chen2003}\cite{zundert2016}.
+Unlike template and machine learning methods, docking methods do not require a library of known interfaces in order to make predictions, but are historically poor at accounting for conformational change\cite{ezkurdia2009}.
 
-Template based methods make predictions based on similarity to a known template protein complex. 
-The protein of interest is compared to a library of proteins whose interface is known, and the interface for the protein of interest is predicted using the interfaces of similar proteins (more detail here and fact check).
+Template based methods make predictions based on similarity to a known template protein complex.
+The protein of interest is compared to a library of proteins whose interface is known, and the interface for the protein of interest is predicted using the interfaces of similar proteins.
+Template methods rely on a non-redundant template set of protein interfaces and compare entire interfaces \cite{tuncbag2011}.
 
 Machine learning methods attempt to directly predict the interface rather than comparing against a template complex or predicting the bound formation, however they still use information from a library of complexes whose interfaces are known.
-Machine learning approaches have included use of a neural network (cite) and a support vector machine(cite). (more detail here and fact check)
-The SVM based approach is called PArtner-specific Interacting Residue PREDictor (PAIRpred) (cite), and utilizes multiple radial basis function kernels. 
-PAIRpred incorporates both sequence and structural information of residues, and uses pairwise kernels which operate on pairwise residues.
-The method performs well compared to existing docking and machine learning methods (how about template based methods?).
+Machine learning approaches have included use of a neural network~\cite{ahmad2011} and a support vector machine~\cite{minhas2014}.
+The latest SVM based approach is called PArtner-specific Interacting Residue PREDictor (PAIRpred), and utilizes multiple radial basis function kernels.
+PAIRpred incorporates both sequence and structural information of residues, and uses pairwise kernels which operate on pairs of residues.
+The method performs well compared to existing docking and machine learning methods~\cite{minhas2014}.
 
 %TODO: Talk about neural network approach
 
@@ -135,25 +142,28 @@ The work described in this paper performs partner specific interface prediction 
 \section{Artificial Neural Networks}
 
 \textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithm which are loosely inspired by neuroscientific models of how biological neural networks operate. 
-Conceptually, a (artificial) neural network represents a parameterized function that is applied to an input data vector which produces an output, which may be a vector or scalar. 
+In its most basic form, a (artificial) neural network is a parameterized function which accepts a vector of data as input and produces either a scalar or vector output.
 For example, the input vector may be pixel values in an image of interest, and the output function may be a label applied to that image that indicates its content.
+In this paper, the function is denoted $f(x|\theta)$, where $x$ is the input vector and $\theta$ is the complete set of parameters.
+$f$ can be decomposed into a sequence of \textit{layers}, $h_i(x_i|\theta_i)$, which perform a comparatively simple mathematical operations on their input to produce output.
+By convention, the input vector is considered the first layer of a neural network even though it constitutes no operations. 
+The output of the last layer is the output of the network. 
+All intermediate layers are termed \textit{hidden layers}, each of which accepts the output of the preceding layer, performs a mathematical operation, and passes the output to the subsequent layer.
+The number of layers in a neural network (besides the first layer) is its \textit{depth}, and the number of outputs of a given layer is denoted the number of \textit{units} (or "neurons") in that layer.
 
-(equation)
+A common form of hidden layer is a \textit{dense layer}, in which each unit calculates a weighted sum of the layer inputs, where the set of weights is unique to each unit.
+It is also common to add a scalar bias term and apply a sigmoid function on the weighted sum.
+Dense layers have a convenient mathematical representation:
 
-This function can be decomposed into a sequence of \textit{layers}, each of which performs a relatively simple mathematical operation on its input to produce a an output.
-The first layer is taken to be the input data, and the output of the last layer is taken to be the output of the network. 
-All intermediate layers are termed \textit{hidden layers}, each of which accepting the output of the prior layer, performing a mathematical operation, and passing the output to the subsequent layer.
-The number of layers in a neural network is taken to be its \textit{depth}.
-The operations at each layer commonly take the form of a matrix multiplication, where a matrix of weights is multiplied by the input vector to produce an output vector.
-This is called a \textit{dense layer}, and mathematically takes the form:
+\begin{equation}
+h(x|W, b)=\sigma(W x + b)
+\label{eq:denselayer}
+\end{equation}
 
-(equation). (include period)
+where $W$ is a matrix of weights, $x$ is the input vector to the layer, $b$ is a vector of biases, and $\sigma(\cdot)$ is a sigmoid function.
+If there are $n$ inputs to a layer and $m$ units in the layer, then $W$ has shape $(n,m)$ and $b$ has shape $(1,m)$.
 
-The number of outputs of a given layer is also denoted the number of \textit{units} (or "neurons") in that layer.
-This interpretation indicates that each unit in a layer takes a weighted sum of the inputs (or outputs from the previous layer), with each unit having a different set of weights for each input. 
-It is also common to include a bias term in each layer and to apply some sort of nonlinear function elementwise on the weighted sum, and the result is considered the \textit{signal} of the layer.
-Despite being conceptually simple, it has been proven that this formulation of artificial neural networks can approximate any function, provided it has enough units (look this up, check details and cite).
-
+Despite being conceptually simple, this formulation of artificial neural networks is capable of approximating any continuous function on a compact subset in $\mathbb{R}$~\cite{cybenko1989} with arbitrarily small error.
 The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function. 
 For feed forward neural networks, this is accomplished through a supervised training algorithm called backpropagation. 
 
