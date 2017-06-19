@@ -1,38 +1,72 @@
 \chapter{Methods}
 \label{chap:methods}
 
-desire: exploit local structure around a residue to help with interface prediction since we know biologically the neighborhood around a graph is relevant to interface likelihood.
+The methods presented in this paper were drawn from a desire to exploit the local information around residues when performing interface prediction. 
+This is biologically motivated because the neighborhood around a residue impacts its propensity to interact.
+It was noted in the introduction that convolutional neural networks are one way of exploiting local structure but are limited to regular grids. 
+Since proteins are irregular 3D structures, there is no natural representation as a regular grid, we therefore need a more appropriate representation to which convolution can hopefully be adapted.
+In this work we represent proteins as graphs.
 
-convolutional neural networks take advantage of local structure, but only work on regular grids
 
-proteins are irregular, so can't represent as a grid, but however, can be represented as graph, so we want to design convolutions to work on graphs. 
+\section{Proteins As Graphs}
 
-\subsection{Proteins As Graphs}
+A (undirected, unweighted) graph $G$ consists of a set of $n$ vertices, $V=\{v_1, v_2, ..., v_n\}$, and a set of $m$ edges, $E=\{e_1, e_2, ..., e_m\}$ where each edge is incident to two vertices.
+In a protein graph, each vertex represents a residue in the protein, and each edge represents the relationship between two residues (in this case, two residues in the same protein, as opposed to two residues in different proteins which are possibly part of an interface).
+Thus any information pertaining to a particular residue, in the form of a feature vector, can be associated with the relevant vertex.
+The features used in this work are drawn from features used in prior interface prediction work \cite{minhas2014} and pertain to the sequence conservation and the structure of a particular residue. 
+Likewise, any information pertaining to the relationship between two residues, in the form of a feature vector, can be associated with the relevant edge.
+The edge features used here describe the distance between and relative orientation of two residues.
+This relationship is defined between any two residues in the protein, so the graph is complete. 
+A detailed explanation of each feature is contained in Appendix \ref{appendix:features}
 
-residue is basic element of information for interface prediction, represent as vertices
-- features associated with residue: based on sequence and structure (see appx)
+This representation is a structural abstraction of the original protein to a well studied mathematical object.
+It does not rely on a coordinate system as would be the case when working with raw 3D coordinates of residues.
+This makes biological sense because proteins often have no natural orientation in the cell.
+However, the graph retains 3D structural information in the form of the features contained on its edges, and can be thought as embedded in an underlying metric space. 
+This property is useful when defining local neighborhoods around vertices, which is necessary when designing convolutions
 
-residues connected by edges
-- features represent relationships between residues, distance (many kinds), relative orientation (see appx)
+\section{Graph Convolutions}
+Though the formulation and application of graph convolutions presented in this paper are new, graph convolutions have existed in the literature for several years.
 
-properties:
-- structural abstraction of original objects to a well studied mathematical object
-- no coordinate system necessary, makes sense because there is usually no inherent orientation to a protein
-- embedded in a metric space which can be useful when defining local neighborhoods
 
-\subsection{Prior Work in Graph Convolutions}
-identical graphs
-	- natural correspondence of neighborhoods and pooling operation is easy.
-	- does not apply for proteins.
-ordering 
-	- imposes correspondence on graph which may or not be natural. allows training filter weights that are specific to a particular location in the ordering (as with image convolutional filters).
-order free
-	- allow for different types of receptive fields but can't treat vertices differently based on their relationship to each other.
-	- only treats one relationship at a time (right?)
-alternative approaches to convolution:
-	- spectral methods, but scaling to large graphs difficult because factoring large matrices difficult.
+\subsection{Prior Work}
+Recent years have seen increased attention for problems involving graph structured data, prompting developments in graph convolutions to perform various tasks on those data~\cite{bronstein2016}.
+These approaches have generally fallen into two categories, \textit{spectral} and \textit{spatial}.
 
-\subsection{Graph Convolutions}
+Spectral methods are based on linear functions in the "frequency domain" of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $W$ is a similarity matrix (containing edge weights), and $D$ is a diagonal matrix containing the degree of each vertex~\cite{henaff2015}.
+%TODO: add other citations of spectral methods?
+Each filter in a spectral convolution implies a weighting of each frequency in the spectral decomposition of the graph~\cite{mallat2009}.
+
+Spatial methods instead define operations in a localized neighborhood of a vertex~\cite{henaff2015}.
+%TODO: add other citations of spatial methods?
+%TODO: mention(?): scaling to large graphs difficult because factoring large matrices difficult
+Each neighborhood constitutes a receptive field where a convolution operation is performed. 
+Various convolution operations are defined in the literature(CITE), which commonly involve a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a linear sum of grid elements within the receptive field.
+%TODO: cite papers with different neighborhood convolutions (write more about them?)
+Spatial convolutions are more directly analogous to grid based convolutions as described in the introduction, but introduce an problem of correspondence when translated to graphs.
+
+\subsection{The Problem of Receptive Field Correspondence}
+When convolving on a grid, each receptive field has identical structure (for example 3x3 pixels in an image), so there is a defined correspondence between receptive fields, such  that the same weights are applied to corresponding portions of all receptive fields. 
+For example, the upper left pixel in a 3x3 receptive field is always multiplied by the same weight when taking the weighted sum, regardless of which receptive field is being considered.
+With graphs, there is often not such a correspondence from one receptive field to another (there is no "upper left" vertex in a neighborhood around a central vertex common to all receptive fields), and in fact the number of neighbors in a receptive field is not even guaranteed to be constant.
+This problem of correspondence has been addressed in various ways which are summarized below.
+\begin{enumerate}
+	\item \textit{Imposed ordering of neighbors}. This approach generates a correspondence between two receptive fields by ordering the neighbors in each and associating neighbors of a common position. 
+	Ordering methods are heuristic and rely on some understanding of the problem domain.
+	%TODO: research ordering methods and cite them
+	They also typically require the number of neighbors in a receptive field to remain the same.
+	This approach allows filter weights which are coupled to a particular position in the ordering, which hopefully has some invariant significance in a receptive field.
+	
+	\item \textit{Order free treatment of neighbors}. This approach ignores the need to establish a correspondence between receptive fields and instead treats all neighbors in the same way.
+	For example, rather than apply different weights to neighbors depending on their position in an ordering, the same weights are applied to each neighbor.
+	This allows for different sizes of receptive fields and avoids choosing an ordering method, but lacks the ability to treat different neighbors differently based on their relationships to each other and to the central vertex.
+	
+\end{enumerate}
+
+
+\subsection{Order Free Coupled Graph Convolutions}
+This paper presents a structural convolution which avoids imposing an ordering on the neighbors in a receptive field but avoids treating all neighbors the same.
+
 desired properties:
 - coordinate free (invariant to rotations or translations in space) - come free with graph representation
 - order free in neighbors
@@ -48,7 +82,7 @@ comments
 - can work with metric embedding graphs or not, just define a different receptive field. 
 - retains graph structure so it's stackable
 
-\subsection{Pairwise Deep Learning Architecture}
+\section{Pairwise Deep Learning Architecture}
 convolve each protein in the pair individually (legs)
 select pairs of amino acids (representations) and combine together (we swap and average but could also combine symmetrically which is like pairwise kernels)
 dense layers, then binary read out layer
