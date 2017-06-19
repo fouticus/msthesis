@@ -66,25 +66,61 @@ This problem of correspondence has been addressed in various ways which are summ
 
 \subsection{Order Free Coupled Graph Convolutions}
 This paper presents a structural convolution which avoids imposing an ordering on the neighbors in a receptive field but avoids treating all neighbors the same.
+This is accomplished by incorporating information from the edges between each neighbor and the central vertex.
+We present two forms of graph convolution which differ in how the edge information is incorporated, denoted \textit{sum coupling} and \textit{product coupling} respectively.
+For a given vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N}$, we define the output of a sum coupled graph convolution to be
+\begin{equation}
+h_i = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} W^{\textsc{n}} x_j + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} W^{\textsc{e}} A_{ij} + b \bigg),
+\label{eq:sum_coupling}
+\end{equation}
+where $x_i$ is the feature vector associated with vertex $i$, $A_{ij}$ is the feature vector associated with edge $(i, j)$, $W^c$, $W^N$ and $W^E$ are weight matrices, and b is a vector of biases. 
+If there are $l$ vertex channels, $p$ edge channels, and $k$ filters, then $W^c$ and $W^N$ have shape $(k, l)$, $W^E$ has shape $(k, p)$, and $b$ has shape $(p, 1)$
+Intuitively, this calculates an activation for the central vertex, each neighbor vertex, and each edge between a neighbor and the central vertex.
 
-desired properties:
-- coordinate free (invariant to rotations or translations in space) - come free with graph representation
-- order free in neighbors
-- correspondence free (not all receptive fields will look the same)
-	- no correspondence required between neighbors in different receptive fields
-	- potentially different number of neighbors altogether
-	
-(math formulation, sum coupled and product coupled)
+Even thought the same weight matrix is being applied to every neighbor, we incorporate information about how each neighbor relates to the central vertex, allowing differentiation between neighbors. 
 
-comments
-- works with any size receptive field but retains neighbor specific characteristics using edge coupling.
-- requires no ordering of edges
-- can work with metric embedding graphs or not, just define a different receptive field. 
-- retains graph structure so it's stackable
+This formulation loses the association between a neighbor and the edge which connects it to the central vertex. 
+Therefore we also define product coupled graph convolution to be 
+\begin{equation}
+z_i = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j) \odot (W^{\textsc{e}} A_{ij}) + b \bigg),
+\label{eq:prod_coupling}
+\end{equation}
+Where $odot$ denotes the elementwise product between two vectors or matrices. 
+In this formulation, each vertex signal is multiplied by the signal of the edge which connects it to the central vertex.
+In one interpretation, this allows a neighbor's influence on the overall activation to be modulated according to its relationship to the central vertex (embodied in the edge). 
+For protein graphs, this means neighboring residues will contribute more or less to the activation depending on their distance from and relative orientation to the central vertex.
+
+Both sum coupled and product coupled graph convolutions are invariant to rotations or translations in space, don't impose an ordering in the neighbors or a correspondence between receptive fields of any kind, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
+The receptive fields are always defined around a central vertex, so the results of convolution can be applied to that vertex.
+This retains the graph structure after each convolution, so convolutional layers are stackable, as with images.
+
+A note on receptive fields: 
+The graphs used in this paper are complete and embedded in a metric space, so a receptive field can be defined using a threshold $\delta>0$ such that all vertices within the threshold are included in the receptive field.
+All neighbors are guaranteed to share an edge with the central vertex.
+For incomplete graphs, a receptive field can be defined as all vertices within $k$ hops of the central vertex. 
+If $k=1$, both versions of graph convolution can directly be applied.
+If $k>1$, then there are multiple ways of applying product coupled graph convolution, though it is not clear which would be more appropriate and/or effective in any particular application.
+%TODO: say more?
+
+These graph convolutions allow the detection of local patterns on a single graph, and produces a new representation at each vertex.
+Partner specific protein interaction, however, requires classifying pairs of residues (vertices in different graphs), so a pairwise neural network architecture must be used. 
 
 \section{Pairwise Deep Learning Architecture}
-convolve each protein in the pair individually (legs)
-select pairs of amino acids (representations) and combine together (we swap and average but could also combine symmetrically which is like pairwise kernels)
-dense layers, then binary read out layer
+To make predictions on pairs of residues from different proteins, we construct a pairwise architecture comprised of three main sections: the \textit{pre-merge} (or \textit{leg} layers), the \textit{merge} layer, and the \textit{post-merge} layers. 
+Even though predictions are being made for pairs of individual residues, convolution depends on surrounding residues, or in the case of stacked convolutional layers, the generated representation of surrounding residues.
+Therefore it is less redundant to convolve an entire protein at once than recreate convolutional representations for each pair of residues separately. 
+Therefore the input to a pairwise classifier neural network is a pair of protein graphs derived from the \textit{ligand} and \textit{receptor} in a known protein complex.
+Each protein is convolved individually in a separate leg, where the number of convolutional layers in each leg is the same and model parameters and other weights are shared across the legs.
 
-implement dropout
+The merge layer then combines the representations of residues from one graph with the representations of residue from the other into pairs. 
+In theory, this merge process should be symmetric because the network should perform identically regardless of which protein is used as input into which leg.
+For example, the elementwise sum, elementwise product, and outer-product are all commutative and therefore produce symmetric output.
+Another option would be to combine pairs in a non symmetric way, such as concatenating the two representations together, but then averaging the predictions between each ordering of the representations.
+This would also produce a symmetric prediction function.
+%TODO: talk about pairwise kernels?
+
+After merging, the resultant combined representation for each pair of residues can be passed through a number of dense layers until reaching the last dense layer, which has a single output.
+The output can be compared an encoded label indicating whether (+1) or not (-1) the pair constitute part of the true interface. 
+
+%TODO: figure...
+

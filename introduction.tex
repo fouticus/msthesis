@@ -102,6 +102,8 @@ In this case, the \textit{quaternary structure} describes the manner in which th
 
 \subsection{Protein Interfaces And Their Prediction}
 
+%TODO: mention ligand and receptor
+
 The locus of protein interaction is the interface, which is comprised of pairs of residues, one from each interacting protein, which interact with one another and bind the two proteins together.
 Such interaction between residues requires electrochemical and geometric compatibility in the local neighborhood of a residue pair.
 For example, like-charged residues will be counter-conducive to the formation of an interface due to mutual repulsion, and opposite-charged residues will have the opposite effect.
@@ -177,6 +179,7 @@ h(x|W, b)=\sigma(W x^T + b)
 \noindent
 where $W$ is a matrix of weights, $x$ is the layer input, $b$ is a vector of biases, and $\sigma(\cdot)$ is a sigmoid function.
 If there are $n$ inputs to a layer and $m$ units in the layer, then $W$ has shape $(n,m)$ and $b$ has shape $(1,m)$.
+$W x^T + b$ is often called the \textit{signal}, and $h$ the \textit{activation}.
 
 Despite being conceptually simple, this formulation of artificial neural networks is capable of approximating any continuous function on a compact subset in $\mathbb{R}$ with arbitrarily small error~\cite{cybenko1989}.
 The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function.
@@ -193,7 +196,7 @@ where $\eta$ is a tunable step size and $k$ indicates the iteration.
 Weights are usually initialized by drawing from distributions that have some empirical or theoretical justification~\cite{glorot2010}.
 A variant of this algorithm, called \textit{stochastic gradient descent} performs an update using a gradient computed from a random subsample (without replacement) of the training data at each iteration.
 When all training data has been sampled, this constitutes an \textit{epoch}.
-%TODO: write about backpropagation?
+%TODO: write about backpropagation? (and minibatching, etc...?)
 Like many machine learning algorithms, neural networks risk \textit{overfitting}, in which the network learns to approximate the training data (which usually contain noise), rather than the underlying function from which the training data are assumed to be drawn.
 This hinders the ability of neural networks to generalize to unseen data.
 
