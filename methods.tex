@@ -34,15 +34,15 @@ Though the formulation and application of graph convolutions presented in this p
 Recent years have seen increased attention for problems involving graph structured data, prompting developments in graph convolutions to perform various tasks on those data~\cite{bronstein2016}.
 These approaches have generally fallen into two categories, \textit{spectral} and \textit{spatial}.
 
-Spectral methods are based on linear functions in the "frequency domain" of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $W$ is a similarity matrix (containing edge weights), and $D$ is a diagonal matrix containing the degree of each vertex~\cite{henaff2015}.
-%TODO: add other citations of spectral methods?
+Spectral methods are based on linear functions in the "frequency domain" of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $W$ is a similarity matrix (containing edge weights), and $D$ is a diagonal matrix containing the degree of each vertex~\cite{bruna2013}\cite{henaff2015}\cite{kipf2016}.
+%TODO: mention(?): scaling to large graphs difficult because factoring large matrices difficult
 Each filter in a spectral convolution implies a weighting of each frequency in the spectral decomposition of the graph~\cite{mallat2009}.
 
-Spatial methods instead define operations in a localized neighborhood of a vertex~\cite{henaff2015}.
-%TODO: add other citations of spatial methods?
-%TODO: mention(?): scaling to large graphs difficult because factoring large matrices difficult
+Spatial methods instead define operations in a localized neighborhood of a vertex~\cite{henaff2015}\cite{atwood2016diffusion}.
+
 Each neighborhood constitutes a receptive field where a convolution operation is performed. 
-Various convolution operations are defined in the literature(CITE), which commonly involve a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
+Convolution operations commonly involve a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
+%TODO: is this true or is it only kipf and Schlichtkrull et al?
 %TODO: cite papers with different neighborhood convolutions (write more about them?)
 Spatial convolutions are more directly analogous to grid based convolutions as described in Chapter \ref{chap:intro}, but introduce an problem of correspondence when translated to graphs.
 
@@ -53,8 +53,7 @@ With graphs, there is often no such correspondence from one receptive field to a
 This problem of correspondence has been addressed in various ways in the literature and are summarized below. Figure \ref{fig:correspondence_approaches}
 \begin{enumerate}
 	\item \textit{Imposed ordering of neighbors}. This approach generates a correspondence between two receptive fields by ordering the neighbors in each and associating neighbors of a common position. 
-	Ordering methods are heuristic and rely on some understanding of the problem domain.
-	%TODO: research ordering methods and cite them
+	Ordering methods can be based on vertex characteristics like degree and betweenness centrality, or some domain specific knowledge ~\cite{niepert2016}\cite{duvenaud2015}.
 	They also typically require the number of neighbors in a receptive field to remain the same.
 	This approach allows filter weights which are coupled to a particular position in the ordering, which hopefully has some invariant significance across all receptive fields.
 	
@@ -115,7 +114,8 @@ These graph convolutions allow the detection of local patterns on a single graph
 Partner specific protein interaction, however, requires classifying pairs of residues in different proteins (vertices in different graphs), which is essentially making predictions in the product graph. To make such predictions we use a pairwise neural network architecture.
 
 \section{Pairwise Deep Learning Architecture}
-To make predictions on pairs of residues from different proteins, we construct a pairwise architecture comprised of three main sections: the \textit{pre-merge} (or \textit{leg}) layers, the \textit{merge} layer, and the \textit{post-merge} layers. 
+To make predictions on pairs of residues from different proteins, we construct a pairwise architecture comprised of three main sections: the \textit{pre-merge} (or \textit{leg}) layers, the \textit{merge} layer, and the \textit{post-merge} layers.
+See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
 Even though predictions are being made for pairs of individual residues, convolution depends on surrounding residues, or in the case of stacked convolutional layers, the generated representation of surrounding residues.
 Therefore it is less redundant to convolve an entire protein at once than create (and recreate) convolutional representations for a vertex whenever it is involved in a pair or the receptive field of a vertex in a pair.
 Therefore the input to a pairwise classifier neural network is a pair of protein graphs derived from the \textit{ligand} and \textit{receptor} in a known protein complex.
@@ -131,5 +131,12 @@ This also ensures symmetric network behavior.
 After merging, the resultant combined representation for each pair of residues is passed through a number of post-merge layers until reaching the last layer, which has a single output for each pair indicating the prediction for that pair
 This output is be compared to an encoded label indicating whether or not the pair constitute part of the true interface. 
 
-%TODO: figure...
+\begin{figure}
+	\centering
+	%\begin{center}
+	\includegraphics[width=0.8\textwidth]{pairwise_network1.pdf}
+	%\end{center}
+	\caption{.}
+	\label{fig:pairwise_arch1}
+\end{figure}
 
