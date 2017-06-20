@@ -188,7 +188,7 @@ $f$ is updated by differentiating the loss function with respect to the network 
 This update step can be repeated iteratively in a process called \textit{gradient descent} and mathematically takes the form:
 \begin{equation}
 \Theta_{k+1} = \Theta_k - \eta \nabla L(\Theta_k | X) = \Theta_k - \eta \sum_{i=1}^{N} \nabla L(\Theta_k | x_n)
-\label{eq:bgd}
+\label{eq:batch_gd}
 \end{equation}
 
 \noindent
