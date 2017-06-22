@@ -1,7 +1,7 @@
 \chapter{Methods}
 \label{chap:methods}
 
-The methods presented in this paper were drawn from a desire to exploit information from a local neighborhood around a residue when performing interface prediction.
+The methods presented in this thesis were drawn from a desire to exploit information from a local neighborhood around a residue when performing interface prediction.
 This is biologically motivated because a residue's neighborhood influences its propensity to interact.
 It was noted in Chapter \ref{chap:intro} that convolutional neural networks are one way of including local information but are limited to regular grids. 
 Since proteins are irregular 3D structures, there is no natural representation as a regular grid, therefore we need a more appropriate representation to which convolution can hopefully be adapted.
@@ -27,7 +27,7 @@ However, the graph retains 3D structural information in the edge features, and i
 This property is useful when defining local neighborhoods around vertices, which is necessary when designing convolutions.
 
 \section{Graph Convolutions}
-Though the formulation and application of graph convolutions presented in this paper are new, graph convolutions have existed in the literature for several years.
+Though the formulation and application of graph convolutions presented in this thesis are new, graph convolutions have existed in the literature for several years.
 
 
 \subsection{Prior Work}
@@ -73,7 +73,7 @@ This problem of correspondence has been addressed in various ways in the literat
 
 
 \subsection{Order Free Coupled Graph Convolutions}
-This paper presents a structural convolution which avoids imposing an arbitrary ordering on the neighbors in a receptive field but also avoids treating all neighbors the same.
+This thesis presents a structural convolution which avoids imposing an arbitrary ordering on the neighbors in a receptive field but also avoids treating all neighbors the same.
 This is accomplished by incorporating information from the edges between each neighbor and the central vertex.
 We present two variants of graph convolution which differ in how the edge information is incorporated, denoted \textit{sum coupled} and \textit{product coupled} respectively.
 For a central vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N_i}$, we define the output of a sum coupled graph convolution to be
@@ -102,12 +102,12 @@ The receptive fields are always defined around a central vertex, so the results 
 This retains the graph structure after each convolution, so convolutional layers are stackable, as with images.
 
 A note on receptive fields: 
-the graphs used in this paper are complete and embedded in a metric space, so a receptive field can be defined using a threshold $\delta>0$ such that all vertices closer to the center vertex than the threshold are included in the receptive field.
+the graphs used in this thesis are complete and embedded in a metric space, so a receptive field can be defined using a threshold $\delta>0$ such that all vertices closer to the center vertex than the threshold are included in the receptive field.
 All neighbors in a receptive field are guaranteed to share an edge with the central vertex, allowing the application of equations \ref{eq:sum_coupling} and \ref{eq:prod_coupling}.
 For incomplete graphs, a receptive field can be defined as all vertices within $k$ hops of the central vertex. 
 If $k=1$, both versions of graph convolution can directly be applied.
 If $k>1$, then product coupled graph convolution can't be directly applied to neighbors more than 1 hop away from the center vertex, since they share no edge with the center. 
-Though there are ways to adapt product coupled graph convolution in this situation, they are not the focus of this paper.
+Though there are ways to adapt product coupled graph convolution in this situation, they are not the focus of this thesis.
 %TODO: say more?
 
 These graph convolutions allow the detection of local patterns on a single graph, and produce a new representation at each vertex.
