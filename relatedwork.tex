@@ -4,6 +4,14 @@
 \chapter{Related Work}
 \label{chap:relatedwork} 
 
+Interfaces exhibit a local spatial correlation in that a residue is more likely to be a part of an interface if nearby residues are also a part of the interface. 
+Local spatial correlation can aid prediction if information from nearby residues is taken into account during prediction.
+
+
+Such methods exist, but are often based on energy minimization techniques which are computationally expensive and attempt to model the entire 3D structure of the interface at once~\cite{esmaielbeiki2015}.
+Some of these methods (Haddock~\cite{zundert2016} for example) allow the user to suggest amino acid residues which are likely part of the interface, to help bias the algorithm towards a correct solution.
+This has motivated work to predict amino acid pairs which constitute part of the interface without solving for the entire interface at once. 
+
 
 
 
