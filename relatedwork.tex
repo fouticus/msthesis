@@ -1,4 +1,4 @@
-
+%TODO: How much to describe each feature? refer to appendix? what if not in appendix?
 
 \chapter{Prior Work In Interface Prediction}
 \label{chap:relatedwork} 
@@ -48,16 +48,25 @@ For a given query protein, a search is made in the library for known complexes w
 The interface of the query protein is then inferred from the interfaces of the most similar query results.
 Similarity may be measured via homology (sequence similarity) or structural similarity~\cite{esmaielbeiki2015}.
 
+Other data-based methods have appeared which are based on either machine learning or statistical methods.
+Some early machine learning based approaches used a support vector machine (SVM) to classify residues as either belonging to an interface or not.
+%TODO: explain SVMs?
+An SVM essentially provides a scoring function which is dependent on training data rather than manually constructed.
+(Koike \& Takagi, 2004~\cite{koike2004}) trained an SVM classifier to perform partner independent prediction of interfaces.
+They represent a residue by its profile, a vector of relative abundances of each amino acid type among homologous proteins at that location (see Appendix \ref{appendix:features} for more detail).
+They experiment with different feature representations to make predictions at a particular residue, finding that incorporating profiles from sequential or spatially neighboring residues improves performance, as does incorporating accessible surface area and accounting for the relative interface size.
+(Bradford \& Westhead, 2004~\cite{bradford2004}) also perform perform partner independent prediction with a SVM classifier, but instead make predictions for surface patches rather than individual residues.
+(Zhou \& Shan, 2001~\cite{zhou2001}) were among the first to train a neural network for partner independent prediction.
+They incorporated profile and solvent exposure of residues and their neighbors to make predictions at the residue level.
+Their method uses residue profiles
+In a follow up paper, (Chen \& Zhou, 2005~\cite{chen2005}) use an ensemble of neural networks to make a consensus prediction concerning a residue of interest.
+%TODO: talk about proto-convolution of chen2005?
 
-Increased data and interest led to growing number and diversity of approaches.
-	larger libraries allow matching of structure to a template (homologous/sequence or structure)
-	
-	growth of statistical and machine learning approaches
-		svm
-		nn
 		naive bayesian
 		hmm
 		conditional random field
+		
+		
 	typically incorporate both sequence and structure information and information from sequential/structural neighbors
 	not global solutions like docking
 	still partner independent
@@ -67,8 +76,9 @@ zhou and qin identify need for partner specific methods to increase specificity 
 
 
 
-\section{Pairwise Methods}
-
+\section{Latest Partner Specific Methods}
+PPIPP
+PairPRED
 
 
 
