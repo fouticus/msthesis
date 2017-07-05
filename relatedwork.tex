@@ -6,92 +6,93 @@
 %In silico prediction of interfaces began in the 
 
 As previously mentioned, the experimental determination of protein complexes is time and resource intensive, prompting computational modeling approaches.
-Esmaielbeiki et al~\cite{esmaielbeiki2015} describe three slightly different objectives in this vein, protein interaction prediction, protein-protein docking, and protein interface prediction~\cite{esmaielbeiki2015}.
-The first objective seeks to identify pairs of proteins which interact, elucidating the complicated protein interaction networks that give rise to cellular processes. 
-The second objective considers two specified proteins and seeks the bound 3D structure of their complex, though this structure could also be used to find the interface.
-The third objective, and the focus of this thesis, is chiefly concerned with identifying the specific residues or pairs of residues which make up the interface.
-Compared to docking, it is less concerned with the 3D complex structure as with the interface itself.
+Esmaielbeiki et al (2015)~\cite{esmaielbeiki2015} describe three slightly different computational problems: protein interaction prediction, protein interface prediction, and protein-protein docking~\cite{esmaielbeiki2015}.
+The first problem seeks to identify pairs of proteins which interact, elucidating the complicated protein interaction networks that give rise to cellular processes. 
+The second problem, and the focus of this thesis, is concerned with identifying the specific residues or pairs of residues which make up the interface.
+The third problem considers two specified proteins and seeks the bound 3D structure of their complex.
 
 \section{Docking}
 
-It is worth noting that docking methods can also be used to predict interfaces, by first solving for the 3D structure of the complex and then extracting the interface from the complex.
-Indeed, docking methods were some of the earliest computational approaches developed for modeling protein interactions~\cite{janin1995}.
 Docking begins with the known unbound structures of two proteins known to interact, and conducts two main steps: search and scoring.
-During search, the proteins are translated and rotated relative to each other and brought into contact to create a putative 3D bound structure for the complex.
-The putative structures are then evaluated by a scoring function to identify the structures that are most likely to be part of the complex.
+During search, the proteins are translated and rotated relative to each other and brought into contact to create a several putative 3D bound structures for the complex.
+The putative structures are then evaluated by a scoring function to identify the most likely conformation of the complex.
 Different docking methods differ in their the search algorithms and scoring functions.
 Scoring functions may incorporate complementarity in geometry, chemistry, and electrostatics, or incorporate van der Walls forces or evidence based (aka statistical) potentials~\cite{tuncbag2011}\cite{janin1995}.
+It is worth noting that docking methods can also be used to predict interfaces, by first solving for the 3D structure of the complex and then extracting the interface from the complex.
+Indeed, docking methods were some of the earliest computational approaches developed for modeling protein interactions~\cite{janin1995}.
 One of the major advantages of docking is its ability to produce interface predictions \textit{ab initio} without having examples of known interfaces, which is particularly useful when experimental complex data are sparse.
-Unfortunately, docking methods traditionally suffer from relatively high false positive rates, are considerably less effective for complexes which undergo conformational change when binding, and are computationally expensive because of the vast search space~\cite{janin1995}\cite{tuncbag2011}.
+Unfortunately, docking methods traditionally suffer from relatively high false positive rates, are considerably less effective for complexes which undergo conformational change when binding than those that do not, and are computationally expensive because of the vast search space~\cite{janin1995}\cite{tuncbag2011}.
 
 \section{Other Early Methods}
 
-Some early alternatives to docking also avoided using examples of known interfaces, instead relying on sequence information, residue properties, and unbound structures for each protein in the complex.
+Some early alternatives to docking used sequence information, residue properties, and unbound structures for each protein in the complex to directly predict the interface without predicting the structure of the whole complex.
 Lichtarge et al (1996)~\cite{lichtarge1996} used inferred evolutionary relationships between different proteins to identify conserved residues and then identified those conserved residues which lay on the surface of the protein.
 This method was based on the hypothesis that conserved surface residues must be vital to a protein's function and therefore probably constitute an interface.
 Pazos et al (1997)~\cite{pazos1997} took a similar approach, but instead looked at evolutionary relationships between protein complexes and identified pairs of residues between the proteins in the complex which have co-evolved.
-This method requires only sequence information and therefore is applicable even in cases where the protein structures are unknown. 
-Additionally, this method is partner specific since it identifies residue pairs which show correlated changes.
+This method requires only sequence information and therefore is applicable even in cases where the protein structures are unknown, but relies on having sufficient data to infer evolutionary relationships.
+Additionally, this method is partner-specific since it identifies residue pairs which show correlated changes.
 Gallet et al (2000)~\cite{gallet2000} used a sliding window on a protein sequence and calculated measures of hydrophobicity in a region, which can easily be calculated knowing the residue identities and secondary structure.
 This method requires no phylogenetic information so is applicable even when no close evolutionary relatives can be identified.
 
 Early methods such as those listed above were crafted for the available data and computational resources of the time, but were unable to fully account for the growing body of research surrounding protein interfaces and their properties, as in Jones \& Thornton, (1996)~\cite{jones1996}.
 It was Jones \& Thornton, (1997)~\cite{jones1997} that proposed a method which incorporates multiple structural features such as surface planarity, protrusion, and accessible surface area, with residue level features such as solvation potential, hydrophobicity, and interface residue propensity.
-They constructed a manual scoring function which inputs are the aforementioned features and output is a score, where higher scores are intended to correspond with members of the interface.
+They constructed a manual scoring function whose inputs are the aforementioned features and output is a score, where higher scores are intended to correspond with members of the interface.
 They constructed a different scoring function for each of three different categories of complex, reflecting observations made into the characteristics of different complex types.
+These categories were homomeric and small heteromeric proteins, larger heteromeric proteins, and antibody/antigen complexes.
 Prediction was performed on small patches of residues.
+Like docking, these methods avoid using examples of known interfaces when making predictions.
 
 Evaluation and comparison of early methods was challenging due to the paucity of experimentally determined protein interfaces~\cite{esmaielbeiki2015}.
 Thankfully, the turn of the twenty first century coincided with an increase in the number of experimentally determined structures added to databases such as the Protein Data Bank~\cite{berman2000}.
 Curated subsets also emerged which focused on evaluating protein-protein docking methods, such as the Critical Assessment of Predicted Interactions (CAPRI)~\cite{janin2003} and the Docking Benchmark Dataset (DBD)~\cite{chen2002}.
-These subsets also became useful in the evaluation (and sometimes training) of interface prediction methods.
+These datasets also became useful in the evaluation (and sometimes training) of interface prediction methods.
 
-\section{Data-Based Methods}
+\section{Data Driven Methods}
 	
 The increasing availability of data and increased interest in interface prediction led to a growing number and diversity of approaches.
 Template based methods emerged which utilize a non-redundant library of known protein interfaces to make predictions about unknown proteins.
 For a given query protein, a search is made in the library for known complexes where a partner is similar to the query protein.
 The interface of the query protein is then inferred from the interfaces of the most similar query results.
-Similarity may be measured via homology (sequence similarity) or structural similarity~\cite{esmaielbeiki2015}.
+Similarity may be measured via sequence or structural similarity~\cite{esmaielbeiki2015}.
 
-Other data-based methods have appeared which are based on either machine learning or statistical methods.
-Some early machine learning based approaches use a support vector machine (SVM) to classify residues as either belonging to an interface or not.
+Other data-driven methods have appeared which are based on either machine learning or statistical methods.
+Some early machine learning based approaches used a support vector machine (SVM) to classify residues as either belonging to an interface or not.
 %TODO: explain SVMs?
 An SVM essentially provides a scoring function which is dependent on training data rather than manually constructed.
-Koike \& Takagi, (2004)~\cite{koike2004} trained an SVM classifier to perform partner independent prediction of interfaces.
+Koike \& Takagi, (2004)~\cite{koike2004} trained an SVM classifier to perform partner-independent prediction of interfaces.
 They represented a residue by its profile, a vector of relative abundances of each amino acid type among homologous proteins at that location.
 They experimented with different feature representations to make predictions at a particular residue, finding that incorporating profiles from sequential or spatially neighboring residues improves performance, as does incorporating accessible surface area and accounting for the relative interface size.
-Bradford \& Westhead, (2004)~\cite{bradford2004} also performed partner independent prediction with a SVM classifier, but instead made predictions for surface patches rather than individual residues.
-Zhou \& Shan, (2001)~\cite{zhou2001} were among the first to train a neural network for partner independent prediction.
+Bradford \& Westhead, (2004)~\cite{bradford2004} also performed partner-independent prediction with an SVM classifier, but instead made predictions for surface patches rather than individual residues.
+Zhou \& Shan, (2001)~\cite{zhou2001} were among the first to train a neural network for partner-independent prediction.
 They incorporated profile and solvent exposure of residues and their neighbors to make predictions at the residue level.
 Their method uses residue profiles.
-In a follow up paper, Chen \& Zhou, (2005)~\cite{chen2005} use an ensemble of neural networks to make a consensus prediction concerning a residue of interest.
+In a follow up paper, Chen \& Zhou, (2005)~\cite{chen2005} used an ensemble of neural networks to make a consensus prediction concerning a residue of interest.
 %TODO: talk about proto-convolution of chen2005?
 
 Various statistical approaches to interface prediction have also been proposed, many of which attempt to model the interdependence between different residues and between residue features.
 Bradford et al, (2006)~\cite{bradford2006} compared a naive Bayes approach to a Bayesian network, which accounts for observed correlations between features, and found that both perform equivalently when predicting interface patches.
-They also found that these methods perform well even when some data are missing, particularly when conservation scores can't be determined due the absence of homologues.
-Friedrich et al, (2006)~\cite{frsiedrich2006} adapted a hidden Markov model (HMM) originally used for homology detection~\cite{eddy1998} in order to detect interacting residues.
-The advantage of a HMM is the ability to jointly model all residues in a sequence at once.
+They also found that these methods perform well even when some data are missing, particularly when conservation scores can't be determined due the absence of homologs.
+Friedrich et al, (2006)~\cite{friedrich2006} adapted a hidden Markov model (HMM) originally used for homology detection~\cite{eddy1998} in order to detect interacting residues.
+The advantage of an HMM is the ability to jointly model all residues in a sequence at once.
 Li et al, (2007)~\cite{li2007} generalized this joint modeling to an undirected graphical model using conditional random fields (CRFs) which performs comparably to other data based approaches.
 
 Early machine learning and statistical methods for interface prediction provide predictions at the individual residue or patch level, in contrast to docking methods which generate global solutions for the complex.
-These methods also typically incorporate both sequence and structural information in order to make partner independent predictions.
-However, in a 2007 review paper, Zhou \& Qin, (2007)\cite{zhou2007} identified the need for new partner specific methods in order to improve prediction specificity.
+These methods also typically incorporate both sequence and structural information in order to make partner-independent predictions.
+However, in a 2007 review paper, Zhou \& Qin, (2007)\cite{zhou2007} identified the need for partner-specific methods in order to improve prediction specificity.
 
 
-\section{Latest Partner Specific Methods}
+\section{Partner Specific Methods}
 
-Whereas early partner specific interface prediction methods are based on sequence co-evolution or derived from docking solutions, recent approaches have also included machine learning based methods.
-Notably, two such methods have incorporated the same types of features as the partner independent machine learning methods, but have instead considered pairs of residues from opposing proteins when making predictions. 
+Whereas early partner-specific interface prediction methods are based on sequence co-evolution or derived from docking solutions, recent approaches have also included machine learning based methods.
+Notably, two such methods have incorporated the same types of features as the partner-independent machine learning methods, but have instead considered pairs of residues from separate proteins when making predictions. 
 
 In Prediciton of Protein-protein Interacting Position Pairs (PPiPP), Ahmad \& Mizuguchi, (2011)~\cite{ahmad2011} used a neural network which only uses sequence based features.
 They experimented with two types of sequence based features, a sparse encoding and a position specific scoring matrix (PSSM) encoding.
 %TODO: describe PSSM? refer to appendix?
 The sparse encoding is a one-hot binary array of length 20 indicating the amino acid type.
-The PSSM encoding instead represents each amino acid type by its log-odd frequency in iterative multiple-sequence-alignment results.
+The PSSM encoding instead represents each amino acid type by its log-odds frequency in iterative multiple-sequence-alignment results.
 Using these features, they also experimented with different sized sequence-windows, where a residue of interest is represented by the concatenation of feature vectors of all residues inside a sequence window.
-Both the feature representations and the sequence windows are in keeping with prior work in machine learning based partner independent predictors.
+Both the feature representations and the sequence windows are in keeping with prior work in machine learning based partner-independent predictors.
 Residues whose windows extended past the end of the bounds of the sequence were excluded from the training set.
 
 The data used are from version 3.0 of the Docking Benchmark Dataset~\cite{hwang2008}, which includes 124 unbound and bound structures of both proteins.
@@ -103,19 +104,19 @@ There are significantly fewer positive than negative examples, so negative examp
 Specifically, either 2\% or 1000 negative examples were randomly selected, whichever was smaller.
 
 The model consists of an ensemble of 24 neural networks, each using different window sizes for the sparse and PSSM encodings.
-The predictions from each of these models is averaged to produce a final prediction for a residue pair.
-Networks were trained in a leave-one-out fashion (train on all but one complex and test performance on the omitted complex) for a fixed number of cycles.
+The predictions from each of these models are averaged to produce a final prediction for a residue pair.
+Networks were evaluated in a leave-one-out fashion (train on all but one complex and test performance on the omitted complex).
 Performance was measured using area under the receiver operating characteristic curve (AUC) for each left out complex and averaged.
 
 The ensemble achieved an AUC of 72.9\% compared to 67.9\% for a single neural network with windows of size 7 for both encodings.
-The authors compared this to an analogously constructed neural network ensemble which performs partner independent prediction.
+The authors compared this to an analogously constructed neural network ensemble which performs partner-independent prediction.
 Examples consist of a single residue which is positive if it is part of an interface and negative otherwise.
-Partner independent predictions were naively converted to partner specific predictions by averaging the scores of each residue in the pair, yielding an AUC of 71.0\%, worse than the partner specific predictor.
-Conversely, partner specific predictions can also be converted to partner independent predictions by taking the max over all potential neighbors. 
-This yielded an AUC of 66.1\% for the partner independent prediction problem, better than the 63.8\% AUC of the partner independent model.
-Thus, the partner specific model outperformed the partner independent model on both partner specific and partner independent predictions.
+Partner independent predictions were naively converted to partner-specific predictions by averaging the scores of each residue in the pair, yielding an AUC of 71.0\%, worse than the partner-specific predictor.
+Conversely, partner-specific predictions can also be converted to partner-independent predictions by taking the max over all potential neighbors. 
+This yielded an AUC of 66.1\% for the partner-independent prediction problem, better than the 63.8\% AUC of the partner-independent model.
+Thus, the partner-specific model outperformed the partner-independent model on both partner-specific and partner-independent predictions.
 
-In PAIRPred, Minhas et al (2014)~\cite{minhas2014} incorporated custom pairwise symmetric kernels into a SVM formulation~\cite{minhas2014}.
+In PAIRPred, Minhas et al (2014)~\cite{minhas2014} incorporated custom pairwise symmetric kernels into an SVM formulation~\cite{minhas2014}.
 In addition, this method includes structural information for each residue as well.
 The structure based features consist of the relative accessible surface area (rASA), residue depth, half sphere amino acid composition, and protrusion index.
 The sequence based features include the same PSSM encoding as PPiPP, a position frequency scoring matrix (PSFM) encoding (like the PSSM encoding but with raw frequencies instead of log-odd frequencies), and predicted rASA (prASA).
