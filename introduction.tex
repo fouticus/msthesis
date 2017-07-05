@@ -6,16 +6,16 @@
 
 Many cellular processes rely on proteins, which facilitate these processes via their interactions with one another and with small molecules within the cell~\cite{scheeffink2003}.
 %TODO: mention protein interaction networks?
-Understanding protein interactions is key to disease and pharmaceutical research, as well as our understanding of basic cellular biology~\cite{fauman2003}\cite{altman2003}.
+Understanding protein interactions is key to disease and pharmaceutical research, as well as our understanding of basic cellular biology~\cite{fauman2003, altman2003}.
 Proteins normally interact via an \textit{interface}, a localized region of the protein with special properties that participates in the interaction.
 
-Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex and imaging via x-ray crystallography or nuclear magnetic resonance~\cite{bijelic2017}\cite{ilarisavino2017}\cite{wang2017}.
+Experimentally identifying the interface between two proteins is a time consuming and expensive process which involves crystallization of the protein complex and imaging via x-ray crystallography or nuclear magnetic resonance~\cite{bijelic2017, ilarisavino2017, wang2017}.
 In contrast, computational methods are faster, cheaper, and complement wet labs by identifying the most relevant and worthwhile experiments to attempt in vivo.
 Various such methods exist, some focusing on a single protein at a time (for example, Lichtarge et al, 2004~\cite{lichtarge1996}, Jones \& Thornton, 1997~\cite{jones1997}, Gallet et al, 2000~\cite{gallet2000}), others considering the interface between a specific pair or proteins (for example, Pazos, 1997~\cite{pazos1997}, Ahmad \& Mizuguchi, 2011~\cite{ahmad2011}, Minhas et al, 2014~\cite{minhas2014}).
-In addition, some related approaches first predict the bound 3D structure of the protein complex, from which the interface can be extracted~\cite{janin1995}\cite{chen2003}\cite{dominguez2003}.
+In addition, some related approaches first predict the bound 3D structure of the protein complex, from which the interface can be extracted~\cite{janin1995, chen2003, dominguez2003}.
 
 This thesis considers protein pairs known to interact and predicts the interface between them.
-The method used is inspired by the success of convolutional neural networks in image processing~\cite{gu2015}\cite{lecun2010}, but adapts the ideas to the work in this problem domain.
+The method used is inspired by the success of convolutional neural networks in image processing~\cite{gu2015, lecun2010}, but adapts the ideas to the work in this problem domain.
 Proteins are represented as graphs and fed into a pairwise convolutional neural network with specialized convolution operations.
 The network makes predictions on pairs of amino acid residues of the likelihood that they constitute a part of the interface. 
 This method outperforms the existing state-of-the-art approach based on a support vector machine with pairwise kernels~\cite{minhas2014}.
@@ -131,8 +131,8 @@ Protein complexes can be categorized as either \textit{transient} or \textit{per
 This distinction reflects the difference in binding affinity (strength of attraction) between single proteins in the complex, with permanent complexes having higher and transient complexes having lower affinity.
 Complexes can also be categorized as either \textit{obligate} and \textit{non-obligate}.
 The constituent proteins of obligate complexes typically exist only in the complex, whereas for a non-obligate complex, each constituent protein exists both in the complex and independently.
-Transience usually implies non-obligation and obligation usually implies permanence, so a simpler classification of obligate vs. transient is also appropriate~\cite{jones1996}\cite{perkins2010}.
-The temporary nature of transient proteins enables complex networks of interaction which give rise to numerous cellular processes and the regulation thereof, including receptor-ligand interaction and signal transduction~\cite{perkins2010}\cite{ofran2003}.
+Transience usually implies non-obligation and obligation usually implies permanence, so a simpler classification of obligate vs. transient is also appropriate~\cite{jones1996, perkins2010}.
+The temporary nature of transient proteins enables complex networks of interaction which give rise to numerous cellular processes and the regulation thereof, including receptor-ligand interaction and signal transduction~\cite{perkins2010, ofran2003}.
 % example of each: substrate-level phosphorylation, protein hormones, transcription factors, antibodies.
 
 
@@ -143,9 +143,9 @@ The temporary nature of transient proteins enables complex networks of interacti
 The locus of protein-protein interaction is the interface, which is comprised of pairs of residues, one from each interacting protein.
 These pairs may form a disulfide bond or salt bridge which help anchor the two proteins together~\cite{yan2008}, but this is not always the case~\cite{ofran2003}.
 Residues may not attract each other directly but still be considered part of the interface due to their proximity.
-This is the case when two hydrophobic residues from opposite proteins appear near each other in the interface, since they do not attract each other, but this configuration is energetically favorable compared to being exposed to water in the surrounding cytoplasm~\cite{yan2008}\cite{ofran2003}.
+This is the case when two hydrophobic residues from opposite proteins appear near each other in the interface, since they do not attract each other, but this configuration is energetically favorable compared to being exposed to water in the surrounding cytoplasm~\cite{yan2008, ofran2003}.
 Historically, residues have been considered part of the interface if they are in contact with residues on the adjacent protein. 
-This is typically determined in one of two ways, either the distance between any atom in the residue in question and any atom in the opposing protein is below a threshold, or the exposed area of a residue (see Appendix \ref{appendix:features} for more details) drops sufficiently after complex formation. ~\cite{yan2008}\cite{jones1996}\cite{ofran2003}\cite{minhas2014}.
+This is typically determined in one of two ways, either the distance between any atom in the residue in question and any atom in the opposing protein is below a threshold, or the exposed area of a residue (see Appendix \ref{appendix:features} for more details) drops sufficiently after complex formation. ~\cite{yan2008, jones1996, ofran2003, minhas2014}.
 
 A survey of known protein complex structures from the Research Collaboratory for Structural Bioinformatics (RCSB) Protein Data Bank (PDB)~\cite{berman2000} has shown that interfaces have a higher prevalence of hydrophobic residues, lower prevalence of hydrophilic residues, and more evolutionary conservation compared to non-interface surface regions~\cite{yan2008}.
 The higher overall hydrophobicity of an interface region biases the protein towards configurations in which the interface excludes water by binding to another protein.
@@ -153,17 +153,17 @@ The higher degree of conservation shows the functional significance of the inter
 Transient complexes also have a comparatively~\textit{lower} hydrophobicity compared obligate complexes, consistent with the fact that proteins in transient complexes exist outside of the complex, with interfaces exposed to water~\cite{jones1996}.
 To overcome the disfavorable energetic effects of burying more hydrophilic residues in an interface, transient interfaces also have relatively higher numbers of hydrogen bonds~\cite{jones1996}.
 It has also been shown that transient complexes have less shape complementarity between the participating proteins compared to obligate complexes~\cite{jones1996}.
-Lastly, transient interfaces also tend to either be smaller in size (for weakly interacting complexes)~\cite{jones1996}\cite{perkins2010}, or undergo more conformational change when forming (for strongly interacting complexes)~\cite{perkins2010} compared to obligate complexes.
+Lastly, transient interfaces also tend to either be smaller in size (for weakly interacting complexes)~\cite{jones1996, perkins2010}, or undergo more conformational change when forming (for strongly interacting complexes)~\cite{perkins2010} compared to obligate complexes.
 These differences make transient complexes more difficult to distinguish from non-interface surface residues, which is unfortunate given their significant role in cellular processes and relevance to biological research~\cite{perkins2010}.
 
 Historically, the problem of interface prediction has been formulated in two ways: \textit{partner independent} and \textit{partner specific} prediction.
 The former variant considers a single residue from a protein and attempts to answer the question: does this residue form part of the interface with some other partner protein?
 The latter variant considers pairs of residues, each from a different protein, and attempts to answer a more specific question: does this \textit{pair} of residues constitute part of the interface between these two proteins?
-The pairwise nature of partner specific prediction allows the consideration of the compatibility of a pair of residues, which has been found to increase performance~\cite{ahmad2011}\cite{minhas2014}.
+The pairwise nature of partner specific prediction allows the consideration of the compatibility of a pair of residues, which has been found to increase performance~\cite{ahmad2011, minhas2014}.
 Methods of interface prediction include \textit{docking methods}, \textit{template-based methods}, and \textit{machine learning methods}.
 
 Docking methods predict the 3D bound formation of two proteins in a complex, from which the interface can be extracted. 
-These methods use energy minimization techniques~\cite{chen2003}\cite{zundert2016}.
+These methods use energy minimization techniques~\cite{chen2003, zundert2016}.
 Unlike template and machine learning methods, docking methods do not require a library of known interfaces in order to make predictions, but are historically poor at accounting for conformational change during complex formation~\cite{ezkurdia2009}.
 
 Template based methods make predictions based on similar known interfaces.
