@@ -116,7 +116,7 @@ Conversely, partner-specific predictions can also be converted to partner-indepe
 This yielded an AUC of 66.1\% for the partner-independent prediction problem, better than the 63.8\% AUC of the partner-independent model.
 Thus, the partner-specific model outperformed the partner-independent model on both partner-specific and partner-independent predictions.
 
-In PAIRPred, Minhas et al (2014)~\cite{minhas2014} incorporated custom pairwise symmetric kernels into an SVM formulation~\cite{minhas2014}.
+In PAIRPred, Minhas et al (2014)~\cite{minhas2014} incorporated custom symmetric symmetric kernels into an SVM formulation~\cite{minhas2014}.
 In addition, this method includes structural information for each residue as well.
 The structure based features consist of the relative accessible surface area (rASA), residue depth, half sphere amino acid composition, and protrusion index.
 The sequence based features include the same PSSM encoding as PPiPP, a position frequency scoring matrix (PSFM) encoding (like the PSSM encoding but with raw frequencies instead of log-odd frequencies), and predicted rASA (prASA).
@@ -129,5 +129,19 @@ Each pairwise kernel is constructed by taking a symmetric combination of kernels
 %TODO: explain this better and write out some math?
 Several individual pairwise kernels are summed and the result is normalized to produce the final pairwise kernel.
 The authors also investigated a postprocessing step where pair scores are smoothed based on the scores in a neighborhood around each residue.
+Cross validation was used to tune the soft margin parameter \textit{C} and the residue kernels and pairwise kernels were optimized in similar fashion. 
+Following the same leave-one-out procedure as Ahmad \& Mizuguchi, PAIRPred achieved an AUC of 87.3~\% before any postprocessing, and 88.7~\% after post processing.
+When using only sequence based features, PAIRPred achieved an AUC of 80.9~\%, which demonstrates a significant improvement over PPiPP even in the absence of structural features.
+Partner-independent prediction was performed by taking the maximum score across all potential neighbors, and achieved an AUC of 70.8~\% and 77.0~\% using only sequence features and all features respectively, which also outperforms PPiPP's best partner-independent performance.
 
-Following the same leave-one-out procedure as Ahmad \& Mizuguchi, PAIRPred achieved an AUC of 80.9 \% before any postprocessing, and 88.7 \% after post processing.
+Minhas et al (2004)~\cite{minhas2014} note that the extreme class imbalance inherent to the partner-specific classification problem means AUC is not as easy to interpret. 
+Therefore they also calculate the rank of the first positive prediction (RFPP) at a given percentile, where $RFPP(p) = q$ means that p~\% of the complexes in the test set have at least one true positive pair among the top q predictions.
+Low values of q corresponding to high values of p indicate better classifier performance because a higher percentage of complexes have a true positive near the top predictions.
+The authors argue that this is more relevant to a biologist because it indicates the trustworthiness of the top few predictions of the classifier. 
+PAIRPred outperforms PPiPP for values of p equal to 10, 25, 50, and 75, but is worse at the 90~\% level.
+
+The authors conclude by noting that there is much room for improvement in partner-specific interface prediction, particularly for complexes with a high degree of conformational change. 
+They propose adding new features to PAIRPred which capture shape complementarity between binding interfaces, co-evolution, and protein flexibility.
+However, PAIRPred's improvement over PPiPP suggests that not only is the choice of features important to classifier performance, but also their representation and the construction of the model itself.
+This supports the investigations of this thesis into the graph representation of proteins and new convolutional methods which operate on graphs.
+Chapter \ref{chap:neuralnetworks} gives a primer on the convolutional neural networks which helped inspire these new methods.
