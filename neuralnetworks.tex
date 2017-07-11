@@ -62,11 +62,17 @@ Like many machine learning algorithms, neural networks risk \textit{overfitting}
 This hinders the ability of neural networks to generalize to unseen data.
 In neural networks, overfitting is commonly the result of an overcomplete parameterization coupled with overtraining~\cite{reed1993, dalianis1993}.
 Many regularization techniques have been introduced to prevent overfitting of neural networks, including early stopping~\cite{morgan1990}, model pruning~\cite{reed1993}, weight decay\cite{krogh1992}, lateral inhibition~\cite{krizhevsky2012}, induced sparsity~\cite{ng2011, makhzani2015}, and dropout~\cite{srivastava2014}, with dropout being one of the most common. 
-Dropout consists of randomly dropping...
+Dropout consists of randomly dropping units from the neural network during the training phase.
+Each time a training example is presented to the network, each unit in the network is dropped with probability $p$, commonly 0.5.
+Each application of dropout can be seen as generating a new network whose units are a subset of the units in the original network.
+Given $n$ units in a network, there are $2^n$ possible dropout networks all with a high degree of weight sharing.
+During testing, no dropout is performed, and weights are rescaling by $p$.
+This has the effect of averaging the prediction of each dropout network.
+Dropout helps prevent overfitting by limiting the effective number of parameters in each dropout network and reducing the amount of co-adaptation among units in the network.\cite{srivastava2014}.
 
 
-In recent years, more advanced forms of neural networks under the moniker \textit{deep learning} have demonstrated success in sophisticated tasks, particularly for those related to images~\cite{lecun2015}. 
-These advances were catalyzed by the availability of large volumes of labeled image data and the improvements in computing power from general purpose graphical processing units (GP-GPUs) and distributed systems.
+In recent years, more advanced forms of neural networks under the moniker \textit{deep learning} have demonstrated success in sophisticated tasks, particularly for image and speech recognition~\cite{krizhevsky2012, lecun2015, masci2011, hinton2012, he2016}, but also in a variety of other applications such as quantitative structure activity relationship (QSAR) prediction~\cite{ma2015}, particle detection~\cite{ciodaro2012}, and reinforcement learning\cite{mnih2015}.
+These advances were catalyzed by the availability of large volumes of labeled data\cite{deng2009, krizhevsky2009} and the improvements in computing power from general purpose graphical processing units (GP-GPUs) and distributed systems\cite{chetlur2014, chu2007}.
 Such factors allow experimentation with larger networks and more complicated layer operations such as convolutions, which are described in the following section.
 
 \section{Convolutional Neural Networks}
