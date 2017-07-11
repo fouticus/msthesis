@@ -4,16 +4,15 @@
 \chapter{Artificial Neural Networks}
 \label{chap:neuralnetworks}
 
-\textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithm which are loosely inspired by neuroscientific models of how biological neural networks operate. 
-In its most basic form, a neural network is a parameterized function which accepts a vector of data as input and produces either a scalar or vector output.
-For example, the input vector may be pixel values in an image of interest, and the output function may be a label applied to that image that indicates its content.
-In this thesis, the function is denoted $f(x|\Theta)$, where $x$ is the input vector and $\Theta$ is the complete set of parameters.
-$f$ can be decomposed into a sequence of layers, $h_i(x_i|\Theta_i)$, which perform comparatively simple mathematical operations on their input to produce an output.
-By convention, the input vector is considered the first layer of a neural network even though it performs no operations. 
-The output of the last layer is the output of the network. 
-All intermediate layers are termed \textit{hidden layers}, each of which accepts the output of the preceding layer, performs a mathematical operation, and passes the output to the subsequent layer.
+\textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithm which are loosely inspired by neuroscientific models of how biological neural networks operate\cite{mcculloch1943}. 
+Like many machine learning methods, a neural network is a parameterized function with vector input and either scalar or vector output.
+For example, the input may be pixel intensities from an image of interest, and the output may be an integer corresponding to a label which indicates the image's content.
+In this thesis, the function is denoted $f(x|\Theta)$, where $x$ is the input vector and $\Theta$ is the complete set of parameters, or weights.
+In neural networks, $f$ is composed of a sequence of layers, $h_i(x_i|\Theta_i)$ which perform comparatively simple mathematical operations on their input to produce a layer output.
+By convention, the input vector is considered the first layer of a neural network, even though it performs no operations, and the output of the last layer is the output of the entire network.
+All intermediate layers are termed \textit{hidden layers}, each of which accepts the output of the preceding layer and passes its output to the subsequent layer.
 The number of layers in a neural network (besides the first layer) is its \textit{depth}, and the number of outputs of a given layer is the number of \textit{units} (or \textit{neurons}) in that layer.
-Figure \ref{fig:twolayernetwork} depicts a two layer neural network with three inputs, four units in the hidden layer, and two outputs. 
+Figure \ref{fig:twolayernetwork} depicts a two layer neural network with three inputs, four units in the hidden layer, and two outputs.
 
 \begin{figure}
 	\centering
@@ -26,7 +25,7 @@ Figure \ref{fig:twolayernetwork} depicts a two layer neural network with three i
 
 A common form of hidden layer is a \textit{dense layer}, in which each unit calculates a weighted sum of the layer inputs, where the set of weights is unique to each unit.
 It is also common to add a scalar bias term and apply a nonlinear activation function to the weighted sum.
-Dense layers have a convenient mathematical representation.
+Dense layers have a convenient mathematical representation:
 
 \begin{equation}
 h(x|W, b)=\sigma(W x^T + b),
@@ -37,26 +36,34 @@ h(x|W, b)=\sigma(W x^T + b),
 where $W$ is a matrix of weights, $x$ is the layer input, $b$ is a vector of biases, and $\sigma(\cdot)$ is a nonlinear activation function.
 If there are $n$ inputs to a layer and $m$ units in the layer, then $W\in\mathbb{R}^{nxm}$ and $b\in\mathbb{R}^{m}$.
 The expression $W x^T + b$ is called the \textit{signal}, and $h$ the \textit{activation}.
-For hidden layers, activations have traditionally taken the form of a sigmoid, or "s-shaped" function such as the logistic function $\sigma(x) = 1/(1+e^{-x})$ or hyperbolic tangent $\sigma(x) = tanh(x)$.
+For hidden layers, activations have traditionally taken the form of a sigmoidal, or "s-shaped", function such as the logistic function, $\sigma(x) = 1/(1+e^{-x})$, or hyperbolic tangent, $\sigma(x) = tanh(x)$.
 
 Despite being conceptually simple, this formulation of artificial neural networks is capable of approximating any continuous function on a compact subset in $\mathbb{R}$ with arbitrarily small error~\cite{cybenko1989}.
 The challenge of using neural networks for function approximation is in finding the appropriate set of parameters to approximate the desired function.
-For simple feed forward neural networks, this is accomplished by quantifying the error between the desired function and the approximation for given training data $X=(x_1, x_2, ..., x_N)$ with a differentiable loss function $L(\Theta | X)$. 
-$f$ is updated by differentiating the loss function with respect to the network parameters $\Theta$ and "taking a step" in parameter space in the opposite direction of the gradient. 
-This update step can be repeated iteratively in a process called \textit{gradient descent} and mathematically takes the form:
+For simple feed forward neural networks, this is accomplished by quantifying the error between the desired function and the approximation for a given training data set $X=(x_1, x_2, ..., x_N)$, using a differentiable loss function $L(\Theta | X)$. 
+The weights are updated by differentiating $L$ with respect to $\Theta$ and "taking a step" in parameter space opposite the direction of the gradient. 
+This update step can be repeated iteratively in a process called \textit{gradient descent}, which can be dated back to Augustin-Louis Cauchy~\cite{cauchy1847}.
+Mathematically, 
 \begin{equation}
-\Theta_{k+1} = \Theta_k - \eta \nabla L(\Theta_k | X) = \Theta_k - \eta \sum_{i=1}^{N} \nabla L(\Theta_k | x_n),
+\Theta_{k+1} = \Theta_k - \eta \nabla L(\Theta_k | X) = \Theta_k - \eta \sum_{n=1}^{N} \nabla L(\Theta_k | x_n),
 \label{eq:batch_gd}
 \end{equation}
 
 \noindent
 where $\eta$ is a tunable step size and $k$ indicates the iteration.
+The gradient can be efficiently calculated using automatic differentiation~\cite{linnainmaa1976}, in which the update step is referred to as \textit{backpropagation}.
 Weights are usually initialized by drawing from distributions that have some empirical or theoretical justification~\cite{glorot2010}.
-A variant of this algorithm, called \textit{stochastic gradient descent} performs an update using a gradient computed from a random subsample (without replacement) of the training data at each iteration.
-When all training data has been sampled, this constitutes an \textit{epoch}.
-%TODO: write about backpropagation? (and minibatching, etc...?)
+A variant of this algorithm, called stochastic gradient descent (SCG) performs an update using a gradient computed from a random sample of the training data at each iteration.
+There is also a batched version where the training data are randomly shuffled and divided into a fixed number of equal sized \textit{mini-batches} and an update is performed on each one. 
+When all mini-batches have been used in an update step, this constitutes an \textit{epoch}.
+Gradient descent is a first order method, however various second order methods have also been used to train neural networks~\cite{fletcher1964, polak1969, moller1993, marquardt1963}.
+
 Like many machine learning algorithms, neural networks risk \textit{overfitting}, in which the network learns to approximate the training data (which usually contain noise), rather than the underlying function from which the training data are assumed to be drawn.
 This hinders the ability of neural networks to generalize to unseen data.
+In neural networks, overfitting is commonly the result of an overcomplete parameterization coupled with overtraining~\cite{reed1993, dalianis1993}.
+Many regularization techniques have been introduced to prevent overfitting of neural networks, including early stopping~\cite{morgan1990}, model pruning~\cite{reed1993}, weight decay\cite{krogh1992}, lateral inhibition~\cite{krizhevsky2012}, induced sparsity~\cite{ng2011, makhzani2015}, and dropout~\cite{srivastava2014}, with dropout being one of the most common. 
+Dropout consists of randomly dropping...
+
 
 In recent years, more advanced forms of neural networks under the moniker \textit{deep learning} have demonstrated success in sophisticated tasks, particularly for those related to images~\cite{lecun2015}. 
 These advances were catalyzed by the availability of large volumes of labeled image data and the improvements in computing power from general purpose graphical processing units (GP-GPUs) and distributed systems.
