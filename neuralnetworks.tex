@@ -1,6 +1,3 @@
-%TODO: refer to grid convolutions as discrete (?)
-
-
 \chapter{Artificial Neural Networks}
 \label{chap:neuralnetworks}
 
@@ -109,6 +106,7 @@ This discrete, two dimensional, and finite analog to convolution forms the basis
 Consider a monochrome image as a finite matrix where the matrix entries reflect pixel values in the image. 
 Further, consider a smaller matrix called a filter where the matrix entries are filter weights.
 By convolving the filter over the input image, a new matrix is created where each value is the result of summing the elementwise product of the image and filter with the filter in a particular position.
+The region of the input covered by the filter is called the \textit{receptive field}, and this application of convolution can be seen as taking a weighted sum of values in the receptive field, where the weights are determined by the corresponding filter weights.
 Figure \ref{fig:convolutionallayer} depicts the application of a filter to the input in a particular image.
 The elementwise product naturally extends to images with multiple \textit{channels} (colors) as long as the filter has the same number of channels as the image.
 The result of a convolution in a particular position depends on the values of the input image and the weights, and indeed there exist weights which produce larger outputs only in the presence of particular local features in the input.
@@ -156,7 +154,7 @@ It's also common to include a series of dense layers after all convolutional lay
 Because the number of parameters in convolutional layers, the final dense layers often contain the majority of the parameters in the network.
 
 
- The above properties make convolutional layers well suited for structured data with a natural hierarchy of abstraction.
- The primary-secondary-tertiary-quaternary structural hierarchy of proteins suggests that they fulfill the first requirement.
+ The above properties make convolutional neural networks well suited for structured data with a natural hierarchy of abstraction.
+ The structural hierarchy of proteins suggests that convolutions might be useful.
  Unfortunately, neither protein residues, nor their constituent atoms are aligned in a regular grid, so the above definition of convolution cannot be directly applied. 
- In the Chapter \ref{chap:methods}, new convolutions are introduced which operate on irregular structures, namely graphs, and a graphical model of proteins is presented which allows use of these graph convolutions for protein interface prediction. 
+ In Chapter \ref{chap:methods}, new convolutions are introduced which operate on irregular structures, namely graphs, and a graphical model of proteins is presented which allows use of these graph convolutions for protein interface prediction.
