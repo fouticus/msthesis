@@ -77,61 +77,86 @@ Such factors allow experimentation with larger networks and more complicated lay
 
 \section{Convolutional Neural Networks}
 
-Traditionally, neural networks do not explicitly account for inherent structure in the input which may be useful when approximating the output function.
-For example, pixels in an image are often spatially correlated, but spatial information is not explicitly given to the network when using dense layers.
-Convolutional layers are one way to incorporate structure information in a neural network. 
-The name comes from an interpretation of how they operate on a set of inputs with a well defined grid structure, such as a pixelated image or discrete time series, where a filter of weights (e.g. 3x3 pixels for images) is convolved over the input grid.
-That is, at each filter position, the filter weights are multiplied with the corresponding inputs, called the \textit{receptive field}, and summed to produce a scalar value.
-As with dense layers, the result is usually passed through an activation function.
-Because each filter multiplication is associated with a position of the input grid, the output retains a grid structure.
-Figure \ref{fig:convolutionallayer} depicts a simple convolutional layer.
-In color images, each pixel has multiple values, or \textit{channels}, which capture color information, and the filter must have the same number of channels as the input in order to take the elementwise product between the filter and the receptive field.
-A convolutional layer may contain multiple filters, each of which produces a grid of scalar values which can be considered a channel in the output.
-The weights in a filter determine which receptive fields produce a larger output and which do not, so a filter can be viewed as detecting specific patterns in a receptive field.
-An alternate interpretation of convolutional layers is that weights are being shared across a layer such that each unit in the convolutional layer receives inputs from a different localized region of the input, and that all units share weights appropriately.
+Accurately labeling an image using a neural network often relies on the network's ability to detect low level features in the image such as edges and textures, which collectively indicate the content of an image~\cite{ng2011}.
+This is accomplished through the appropriate set of parameters, which maximize a unit's activation when presented with a feature of interest.
+These parameters can be learned through the standard backpropagation algorithm using training images. 
+The challenge, however, is that the training data may not present the features of interest in all regions of the input. 
+For example, suppose the labeling task is to determine if an image does or does not contain a cat.
+Suppose further that no training image contains a cat in the upper left corner of the image.
+Therefore it is possible, even if the network has learned which low level features indicate the presence of a cat, that it will not recognize a cat contained in the upper left corner of the image, since it has not been explicitly shown examples of this.
+This may seem unlikely, but consider that the network does not incorporate any semantic meaning of the word "cat", only that a certain set of example images are positive examples and a certain set are negative examples.
+Indeed, consider the slightly different labeling task where the classes being considered are "contains a cat anywhere but the top left corner" and its negation.
+In this case, the same set of training images are appropriate and the hope is that the network would \textit{not} classify images with cats in the upper left corner as positive examples.
+In most cases, the labeling task is more like the former example than the latter, in which case it would be beneficial for the network to learn to detect objects in a \textit{translation invariant} fashion. 
+This is the primary purpose of convolutional layers.
 
-%TODO: equation?
+The term convolution is inherited from field of functional analysis, where two functions, $f$ and $g$, are combined in the following way to generate a third function, $(f*g)$:
+
+\begin{equation}
+(f*g)(t) = \int_{-\infty}^{\infty}f(\tau)~g(t-\tau)~d\tau
+\label{eq:math_conv}
+\end{equation}
+
+\noindent
+The convolution can be interpreted as reversing one function, shifting it with respect to the other function, and integrating the product. 
+Each value of $t$ represents a different relative shift.
+The discrete analog of this, assuming a regular domain, takes the sum of the elementwise product of two infinite arrays.
+This can be extended to two dimensions by taking the sum of the elementwise product of two matrices.
+Finite matrices can be considered by reinterpreting the matrices as infinite and zero everywhere outside a region the same size as the finite matrix.
+%TODO: Figure of grid?
+This discrete, two dimensional, and finite analog to convolution forms the basis of convolutional layers in neural networks.
+
+Consider a monochrome image as a finite matrix where the matrix entries reflect pixel values in the image. 
+Further, consider a smaller matrix called a filter where the matrix entries are filter weights.
+By convolving the filter over the input image, a new matrix is created where each value is the result of summing the elementwise product of the image and filter with the filter in a particular position.
+Figure \ref{fig:convolutionallayer} depicts the application of a filter to the input in a particular image.
+The elementwise product naturally extends to images with multiple \textit{channels} (colors) as long as the filter has the same number of channels as the image.
+The result of a convolution in a particular position depends on the values of the input image and the weights, and indeed there exist weights which produce larger outputs only in the presence of particular local features in the input.
+Hence convolutions can be used in a neural network to detect patterns in the input.
+Furthermore, since the same set of weights is used to convolve across the whole image, feature detection can be performed in a translation invariant way as desired. 
+A filter may only detect a particular local feature, so multiple filters can be used to detect multiple features simultaneously, each producing a different channel in the output.
+Note that the output of a convolution layer resembles the structure of the input, so convolutional layers may be stacked.
+
 
 \begin{figure}
 	\centering
 	%\begin{center}
-	\includegraphics[width=0.8\textwidth]{convolutionallayer.pdf}
+	\includegraphics[width=0.8\textwidth]{conv_grid.png}
 	%\end{center}
-	\caption{A convolutional layer with a single 3x3 filter operating on a grid input with a single channel. The filter is multiplied elementwise with the corresponding inputs and produces a scalar value.}
+	\caption{Application of a 3x3 convolution filter to an input grid. The filter is multiplied elementwise with the receptive field (in green) and produces a scalar output (in red).}
 	\label{fig:convolutionallayer}
 \end{figure}
 
+The design of convolutional layers gives rise to certain properties which prove useful in image related tasks:
+ \begin{itemize}
+ 	\item \textit{Structural awareness}
+ 	Convolutional filters are constructed so that they exploit the structural characteristics of the input.
+ 	Rather than treat each pixel of an image as independent of all others, convolutions operate on local regions of pixels, allowing filters to detect spatial correlations in a straightforward manner.
+ 	\item \textit{Locality}. 
+ 	Filters are typically significantly smaller than the size of the input, so a given position they are operating on a local neighborhood (also called a \textit{receptive field}) of the input image. 
+ 	Any features learned by a filter will necessarily be local as well. 
+ 	The advantage of local features is that they are simpler and more universal than more global features, so that filters which detect edges or textures will be more useful to subsequent layers in the network than a filter which recognizes a specific object or animal, for example. 
+ 	One exception to locality is when layers are stacked on top of one another, resulting a larger "effective" receptive field on the original input for filters later in the network.
+ 	This exception is actually advantageous for abstraction (see below).
+ 	\item \textit{Translation invariance}. 
+ 	As discussed, a filter "inspects" each part of the image for a particular pattern, regardless of where that pattern occurred in the training images.
+ 	This improves generalizability because during training certain features may be presented in limited regions of the image, but detection of that feature can still operate on a global scale.
+ 	\item \textit{Abstraction}. Whereas a network's first convolutional layer detects patterns in the input, subsequent layers detect patterns in the output of previous layers. 
+ 	This promotes a hierarchical abstraction of the input, where early layers detect local features, and subsequent layers combine features into more complex objects. 
+ 	For example, early filters may detect edges of varying orientations, middle filters may detect combinations of edges which indicate curves in space, and latter filters may detect combinations of curves which indicate a particular handwritten letter or digit.
+ 	\item \textit{Resistence to overfitting}. 
+ 	One interpretation of a convolutional layer is that each filter is a series of units, each responsible for a distinct receptive field on the input.
+ 	A unit has nonzero weights only for the regions of the input in its receptive field, and all units share the same weights. 
+ 	This combination of weight sharing and sparsity make a convolutional layer less prone to overfitting compared to a dense layer with the same number of units.
+ \end{itemize}
 
-Convolutional layers exhibit certain properties which aid in image related tasks:
-\begin{itemize}
-\item
-\textit{Local pattern detection}: Convolutional filters are usually significantly smaller than the size of the input, so for any given position of the filter they are operating on a local neighborhood of the input. 
-This means that patterns detected by a particular filter are local.
-\item
-\textit{Translational Invariance}: Since filters are convolved over the input, patterns can be efficiently detected regardless of where they occur in the input.
-In a dense layer, detection of a local pattern in each part of the input requires that weights associated with each region of the input be trained individually to detect the same pattern.
-This means the training data must represent the same pattern in all portions of the input. 
-For example, to train a dense layer to detect a cat's ear regardless of where it appears in an image, it must be trained using data which represent a cat's ear in every possible position in the image.
-\item
-\textit{Stackability}: The output of a convolutional layer retains the same grid structure as the input, so the output of a convolutional layer can be used as input to another convolutional layer.
-Consider a neural network with two convolutional layers stacked on top of one another.
-The receptive field of a unit in the second layer consists of units in the preceeding convolutional layer, each of which has its own receptive field in the input.
-Hence filters in the second layer detect patterns of patterns in the original input, which suggests that stacked layers learn a hierarchical representation of the original input.
-Furthermore, stacked layers have effectively larger receptive fields on the original input, and are therefore able to detect larger patterns in the original input.
-The ability to learn a conceptual hierarchy of patterns in the input, from simple textures and edges to complex objects like faces or vehicles, has been demonstrated empirically as well~\cite{zeiler2013}.
-\item
-\textit{Robustness to overfitting}: The weight sharing inherent in convolutional layers means there are fewer trainable weights compared to a dense layer with the same number of hidden units. 
-This reduces the propensity of the network to overfit to the training data and improves its ability to generalize to unseen examples.
-\end{itemize}
-
-Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a small region of a grid (e.g. 2x2 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
+Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a small region of the input (e.g. 2x2 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
 Pooling allows downsampling of the grid, and is often performed between convolutional layers. 
-
-The convolutions described above can only operate on a regular grid. 
-Proteins, however, have inherently irregular structure. 
-In this work the notion of convolution to work with irregular structure, which are represented as graphs, as described in Chapter \ref{chap:methods}.
+It's also common to include a series of dense layers after all convolutional layers which essentially combine the results of convolution in a way relevant to the learning task.
+Because the number of parameters in convolutional layers, the final dense layers often contain the majority of the parameters in the network.
 
 
-
-
-
+ The above properties make convolutional layers well suited for structured data with a natural hierarchy of abstraction.
+ The primary-secondary-tertiary-quaternary structural hierarchy of proteins suggests that they fulfill the first requirement.
+ Unfortunately, neither protein residues, nor their constituent atoms are aligned in a regular grid, so the above definition of convolution cannot be directly applied. 
+ In the Chapter \ref{chap:methods}, new convolutions are introduced which operate on irregular structures, namely graphs, and a graphical model of proteins is presented which allows use of these graph convolutions for protein interface prediction. 
