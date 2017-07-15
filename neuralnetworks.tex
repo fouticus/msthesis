@@ -1,14 +1,31 @@
 \chapter{Artificial Neural Networks}
 \label{chap:neuralnetworks}
 
-\textit{Feed forward artificial neural networks}, or less formally, \textit{neural networks}, are a class of machine learning algorithms which are loosely inspired by neuroscientific models of how biological neural networks operate\cite{mcculloch1943}. 
-Like many machine learning methods, a neural network is a parameterized function with vector input and either scalar or vector output.
-For example, the input may be pixel intensities from an image of interest, and the output may be an integer corresponding to a label which indicates the image's content.
-In this thesis, the function is denoted $f(x|\Theta)$, where $x$ is the input vector and $\Theta$ is the complete set of parameters, or weights.
-In neural networks, $f$ is composed of a sequence of layers, $h_i(x_i|\Theta_i)$, which perform comparatively simple mathematical operations on their input to produce a layer output.
-By convention, the input vector is considered the first layer of a neural network, even though it performs no operations, and the output of the last layer is the output of the entire network.
-All intermediate layers are termed \textit{hidden layers}, each of which accepts the output of the preceding layer and passes its output to the subsequent layer.
-The number of layers in a neural network (besides the first layer) is its \textit{depth}, and the number of outputs of a given layer is the number of \textit{units} (or \textit{neurons}) in that layer.
+\textit{Artificial neural networks} are a class of machine learning algorithms which are loosely inspired by neuroscientific models of how biological neuronal networks operate.
+Early work in neuroscience by Santiago Ram{\'o}n y Cajal indicated that the nervous system is composed of complex networks of individual cells, later called neurons~\cite{cajal1955}.
+Neurons consist of a soma and axon.
+The soma is the main part of the cell, and the axon extends from the soma, connecting to one or more somata of other cells.
+A neuron creates a so called "action potential" if it is sufficiently excited by the axons connected to it, which propagates down its own axon to help excite or inhibit other neurons to which it is connected~\cite{mcculloch1943}.
+In this way, electrical signals are propagated through a neronal network.
+Work by Hodgkin and Huxley described mathematically how action potentials are generated in neurons and propagate from one neuron to another~\cite{hodgkin1952}.
+
+Artificial neural networks mimic this behavior with a mathematical network of \textit{artificial} neurons.
+Mathematical signals propagate through this network, whereby each neuron performs a simple mathematical operation on its input to determine its output.
+\textit{Feed forward artificial neural networks} are a subclass of artificial neural networks which contain no cycles, that is, there is no sequence of input/output connections that start and end at the same neuron.
+This class of artificial neural network always contains at least one input neuron with nothing feeding into it, and at least one output neuron which feeds into nothing.
+They therefore constitute a function, which output is determined by the cascade of neuron operations.
+If the neuron operations are parameterized, then it may be possible to approximate another function through the appropriate selection of parameters.
+Let the function defined by a feed forward artificial neural network be denoted by $f(x|\Theta)$, where $x$ is the input vector and $\Theta$ is the complete set of parameters, or weights. 
+Figure \ref{fig:twolayernetwork} shows a graphical depiction of a parameterized, feed forward artificial neural network.
+
+For many machine learning applications, $f$ is composed of a sequence of layers, each consisting of some number of neurons, which perform comparatively simple mathematical operations on their input to produce an output.
+A layer's output is either used as input to the subsequent layer, or taken as the network output if there are no subsequent layers.
+By convention, the input vector $x$ is considered the first layer of a network, with one neuron per input, where each neuron takes the value of the respective input.
+The last layer in the network produces the function's output, either a scalar or vector of values.
+All intermediate layers are termed \textit{hidden layers}, each of which accepts the output of the preceding layer and produces one output per neuron in that layer.
+The number of layers in a network (besides the first layer) is its \textit{depth}.
+
+Some important notes on terminology: artificial neurons are also called \textit{units}, which will be the preferred term from this point to avoid confusion with biological neurons. Also, omitting the \textit{artificial} from artificial neural networks is common parlance in the literature, and will be done in this thesis for convenience. To avoid possible confusion, biological neural networks will hereafter be referred to as such.
 
 A common form of hidden layer is a \textit{dense layer}, in which each unit calculates a weighted sum of the layer inputs, where the set of weights is unique to each unit.
 It is also common to add a scalar bias term and apply a nonlinear activation function to the weighted sum.
@@ -21,10 +38,9 @@ h(x|W, b)=\sigma(W x^T + b),
 
 \noindent
 where $W$ is a matrix of weights, $x$ is the layer input, $b$ is a vector of biases, and $\sigma(\cdot)$ is a nonlinear activation function.
-If there are $n$ inputs to a layer and $m$ units in the layer, then $W\in\mathbb{R}^{nxm}$ and $b\in\mathbb{R}^{m}$.
+If there are $n$ inputs to a layer and $m$ units in the layer, then $W\in\mathbb{R}^{n \times m}$ and $b\in\mathbb{R}^{m}$.
 The expression $W x^T + b$ is the \textit{signal}, and $h$ is the \textit{activation}.
 For hidden layers, activations have traditionally taken the form of a sigmoidal, or "s-shaped", function such as the logistic function, $\sigma(x) = 1/(1+e^{-x})$, or hyperbolic tangent, $\sigma(x) = tanh(x)$.
-Figure \ref{fig:twolayernetwork} shows a graphical depiction of a simple two layer neural network.
 
 \begin{figure}
 	\centering
@@ -49,7 +65,7 @@ Mathematically,
 
 \noindent
 where $k$ indicates the iteration and $\eta$ is a tunable step size.
-The gradient can be efficiently calculated using automatic differentiation~\cite{linnainmaa1976}, in which the update step is referred to as \textit{backpropagation}.
+The gradient can be efficiently calculated using automatic differentiation~\cite{linnainmaa1976}, also called \textit{backpropagation} in this context.
 Weights are usually initialized by drawing from random distributions that have some empirical or theoretical justification~\cite{glorot2010}.
 A variant of this algorithm, called stochastic gradient descent (SCG) performs an update using a gradient computed from a random sample of the training data at each iteration.
 There is also a batched version where the training data are randomly shuffled and divided into a fixed number of equal sized \textit{mini-batches} and an update is performed on each one. 
@@ -67,7 +83,7 @@ Each application of dropout can be seen as generating a new network whose units 
 Given $n$ units in a network, there are $2^n$ possible dropout networks which all share weights with each other.
 During testing, no dropout is performed, and weights are rescaled by $p$.
 This is equivalent to averaging the prediction of each dropout network.
-Dropout helps prevent overfitting by limiting the effective number of parameters in each dropout network and reducing the amount of co-adaptation among units in the network.\cite{srivastava2014}.
+Dropout helps prevent overfitting by limiting the effective number of parameters in each dropout network and reducing the amount of co-adaptation among units in the network~\cite{srivastava2014}.
 
 
 In recent years, more advanced forms of neural networks under the moniker \textit{deep learning} have demonstrated success in sophisticated tasks, particularly for image and speech recognition~\cite{krizhevsky2012, lecun2015, masci2011, hinton2012, he2016}, but also in a variety of other applications such as quantitative structure activity relationship (QSAR) prediction~\cite{ma2015}, particle detection~\cite{ciodaro2012}, and reinforcement learning\cite{mnih2015}.
@@ -76,7 +92,7 @@ Such factors allow experimentation with larger networks and more complicated lay
 
 \section{Convolutional Neural Networks}
 
-Accurately labeling an image using a neural network often relies on the network's ability to detect low level features in the image such as edges and textures, which collectively indicate the an image's content~\cite{ng2011}.
+Accurately labeling an image using a neural network often relies on the network's ability to detect low level features in the image such as edges and textures, which collectively indicate the image's content~\cite{ng2011}.
 This is accomplished by the appropriate set of parameters, which maximize a unit's activation when presented with a feature of interest, and can be learned through the standard backpropagation algorithm using training images. 
 The challenge, however, is that the training data may not present the features of interest in all regions of the input. 
 For example, suppose the labeling task is to determine if an image does or does not contain a cat.
@@ -91,12 +107,12 @@ This is the primary purpose of convolutional layers.
 The term convolution is inherited from the field of functional analysis, where two functions, $f$ and $g$, are combined in the following way to generate a third function, $(f*g)$:
 
 \begin{equation}
-(f*g)(t) = \int_{-\infty}^{\infty}f(\tau)~g(t-\tau)~d\tau
+(f*g)(t) = \int_{-\infty}^{\infty}f(\tau)~g(t-\tau)~d\tau.
 \label{eq:math_conv}
 \end{equation}
 
 \noindent
-The convolution involves reversing one function, shifting it with respect to the other function, and integrating the product. 
+The convolution involves reflecting one function about the y axis, shifting it with respect to the other function, and integrating the product. 
 Each value of $t$ represents a different relative shift.
 The discrete analog of this, assuming a regularly spaced domain (in other words, a grid), takes the sum of the elementwise product of two infinite arrays.
 Figure \ref{fig:cont_disc_conv} illustrates this analogy.
@@ -147,8 +163,6 @@ The design of convolutional layers gives rise to certain properties which prove 
  	Any features learned by a filter will necessarily be local as well. 
  	The advantage of local features is that they are simpler and more universal than global features, since they can be combined to construct a wide variety of complex patterns (see \textit{abstraction} below).
  	For example, filters which detect edges or textures will be more useful to subsequent layers in the network than a filter which recognizes only a single object or animal.
- 	One exception to locality is when layers are stacked on top of one another, resulting in a larger "effective" receptive field on the original input for filters later in the network.
- 	This exception is advantageous for abstraction (see below).
  	\item \textit{Translation invariance}. 
  	As discussed, a filter "inspects" each part of the image for a particular pattern, regardless of where that pattern occurred in the training images.
  	This improves generalizability because during training certain features may be presented in limited regions of the image, but detection of that feature can still operate on a global scale.
@@ -161,13 +175,22 @@ The design of convolutional layers gives rise to certain properties which prove 
  	This combination of weight sharing and sparsity make a convolutional layer less prone to overfitting compared to a dense layer with the same number of units.
  \end{itemize}
 
-Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a small region of the input (e.g. 2x2 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
+Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a region of the input (e.g. 3x3 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
 Pooling allows downsampling of the grid, and is often performed between convolutional layers. 
 It's also common to include a series of dense layers after all convolutional layers which combine the results of convolution in a way relevant to the learning task.
 Because of the weight sharing in convolutional layers, the final dense layers often contain the majority of the parameters in the network.
 
+\begin{figure}
+	\centering
+	%\begin{center}
+	\includegraphics[width=0.8\textwidth]{conv_network.png}
+	%\end{center}
+	\caption{}
+	\label{fig:conv_network}
+\end{figure}
 
- The above properties make convolutional neural networks well suited for structured data with a natural hierarchy of abstraction.
- The structural hierarchy of proteins suggests that convolutions might be useful in interface prediction.
- Unfortunately, neither protein residues, nor their constituent atoms are aligned in a regular grid, so the above definition of convolution cannot be directly applied. 
- In Chapter \ref{chap:methods}, new convolutions are introduced which operate on irregular structures, namely graphs, and a graphical model of proteins is presented which allows use of these graph convolutions for protein interface prediction.
+
+The above properties make convolutional neural networks well suited for structured data with a natural hierarchy of abstraction.
+The structural hierarchy of proteins suggests that convolutions might be useful in interface prediction.
+Unfortunately, neither protein residues, nor their constituent atoms are aligned in a regular grid, so the above definition of convolution cannot be directly applied. 
+In Chapter \ref{chap:methods}, new convolutions are introduced which operate on irregular structures, namely graphs, and a graphical representation of proteins is presented which allows use of these graph convolutions for protein interface prediction.
