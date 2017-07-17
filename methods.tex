@@ -4,13 +4,13 @@
 The methods presented in this thesis were drawn from a desire to exploit local structure around a residue when performing interface prediction.
 The biological motivation for this is that a residue's neighborhood influences its propensity to participate in an interface.
 It was noted in Chapter \ref{chap:neuralnetworks} that convolutional neural networks are one way of detecting features in a local neighborhood, but they are limited to regular grids. 
-Unfortunately, proteins cannot naturally be represented as a regular grid, so convolutions must be developed for a more natural representation: graphs.
+Unfortunately, proteins cannot naturally be represented as a regular grid, so convolution must be developed for a more natural representation: graphs.
 
 
 \section{Proteins As Graphs}
 
 An undirected, unweighted graph $G$ consists of a set of vertices, $V=\{v_1, v_2, ..., v_n\}$, and a set of eges, $E=\{e_1, e_2, ..., e_m\}$ where each edge is incident to two vertices and there is at most one edge between two vertices.
-In a protein graph, each vertex represents a residue in the protein, and each edge represents the relationship between two residues.
+One way of representing proteins as graphs is to let each vertex represent a residue in the protein, and each edge represent the relationship between two residues.
 Thus any information pertaining to a particular residue can be associated with the relevant vertex in the form of a feature vector.
 The features used in this work are drawn from features used in prior interface prediction work \cite{minhas2014}.
 Likewise, any information about the relationship between two residues can be associated with the relevant edge.
@@ -23,16 +23,17 @@ This representation is a structural abstraction of the original protein to a wel
 It does not rely on a coordinate system, as is the case when working with raw 3D positions.
 This makes biological sense because proteins often have no natural orientation in the cell, and the relative orientations of two interacting proteins is not known a priori.
 However, the graph retains 3D structural information in the edge features, and is embedded in an underlying metric space.
-This embedding is useful when defining local neighborhoods around vertices, which is necessary when designing convolutions.
+This embedding is useful when defining local neighborhoods around vertices, which is necessary when designing a convolution.
 With proteins represented as graphs, the remaining task is to design a convolution operation which operates on graphs. 
 
-\section{Graph Convolutions}
-Though the formulation and application of graph convolutions presented in this thesis are new, graph convolutions already exist in the literature.
+\section{Graph Convolution}
+Though the formulation and application of graph convolution presented in this thesis are new, graph convolution exists in the literature.
 
 
-\subsection{Prior Work In Graph Convolutions}
-Recent years have seen increased attention for problems involving graph structured data, prompting developments in graph convolutions to perform various tasks on those data~\cite{bronstein2016}.
-These approaches have generally fallen into two categories, \textit{spectral} and \textit{spatial}.
+\subsection{Prior Work in Graph Convolution}
+Recent years have seen increased attention for problems involving graph structured data, prompting developments in graph convolution to perform various tasks on those data~\cite{bronstein2016}.
+This allows leveraging of deep learning techniques, which have seen great success for problems on regular grids.
+Graph convolution approaches have generally fallen into two categories, \textit{spectral} and \textit{spatial}.
 
 Spectral methods are based on linear functions in the "frequency domain" of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $I$ is the identity matrix, $W$ is a similarity matrix (containing edge weights), and $D$ is a diagonal matrix containing the degree of each vertex~\cite{bruna2013, henaff2015, kipf2016}.
 %TODO: mention(?): scaling to large graphs difficult because factoring large matrices difficult
@@ -40,9 +41,9 @@ Each filter in a spectral convolution implies a weighting of each frequency in t
 
 Spatial methods instead define operations in a localized neighborhood of a central vertex~\cite{henaff2015, atwood2016diffusion}.
 Each neighborhood constitutes a receptive field where a convolution operation is performed. 
-Convolutions commonly involve a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
-%TODO: cite papers with different neighborhood convolutions (write more about them?)
-Spatial convolutions are more directly analogous to grid based convolutions as described in Chapter \ref{chap:neuralnetworks}, but introduce a problem of correspondence when translated to graphs.
+Convolution commonly involves a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
+%TODO: cite papers with different neighborhood convolution (write more about them?)
+Spatial convolution is more directly analogous to grid based convolution as described in Chapter \ref{chap:neuralnetworks}, but introduce a problem of correspondence when translated to graphs.
 
 \subsection{The Problem of Receptive Field Correspondence}
 When convolving on a grid, each receptive field has an identical structure (for example 3x3 pixels in an image), so there is an automatic correspondence between receptive fields, such  that the same weights are applied to corresponding portions of all receptive fields. 
@@ -73,11 +74,11 @@ Figure \ref{fig:correspondence_approaches} shows a graphical depiction of both a
 \end{figure}
 
 
-\subsection{Order Free Coupled Graph Convolutions}
+\subsection{Order-Free Coupled Graph Convolution}
 This thesis presents a graph convolution which avoids imposing an arbitrary ordering on the neighbors in a receptive field but also avoids treating all neighbors the same.
 This is accomplished by incorporating information from the edges between each neighbor and the central vertex.
-There are two variants of graph convolution which differ in how the edge information is incorporated, denoted \textit{sum coupled} and \textit{product coupled}.
-For a central vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N}_i$, the output of sum coupled graph convolution is:
+Here are two variants of graph convolution which differ in how the edge information is incorporated, denoted \textit{sum coupled} and \textit{product coupled}.
+For a central vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N}_i$, the output of \emph{sum coupled} graph convolution is:
 \begin{equation}
 h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j + W^{\textsc{e}} A_{ij}) + b \bigg),
 \label{eq:sum_coupling}
@@ -88,7 +89,7 @@ Intuitively, this calculates an activation for the central vertex, each neighbor
 It is the inclusion of edge activations that allows each neighbor to be distinguished from the others on the basis of its relationship to the central vertex.
 This variant is called sum coupled because the neighbor vertex and edge activations are added together.
 Because of this, the direct association between a neighbor its edge is lost.
-A coupling which maintains the association is product coupling, which output is:
+A variant which maintains the association is \emph{product coupling}, whose output is:
 \begin{equation}
 z_i = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j \odot W^{\textsc{e}} A_{ij}) + b \bigg),
 \label{eq:prod_coupling}
@@ -97,51 +98,54 @@ where $\odot$ denotes the elementwise product between two vectors or matrices.
 This allows a neighbor's influence on the overall activation to be modulated by its relationship to the central vertex.
 For protein graphs, this means neighboring residues will contribute more or less to the overall activation, depending on their distance from and relative orientation to the central vertex, with the precise modulation determined by the edge activations.
 
-Both sum coupled and product coupled graph convolutions are invariant to rotations or translations in space, don't impose an ordering in the neighbors or a correspondence between receptive fields of any kind, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
+Just as convolution on a regular grid can be applied at any pixel in an image, graph convolution can be applied to any vertex in the graph.
+Hence both can be considered translation invariant.
+
+Both sum coupled and product coupled graph convolution are translation invariant, don't impose an ordering in the neighbors or a correspondence between receptive fields of any kind, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
 The receptive fields are always defined around a central vertex, so the results of convolution can be applied to that vertex.
 This retains the graph structure after each convolution, so convolutional layers are stackable, as with images.
 
 A note on receptive fields: protein graphs are complete and embedded in a metric space, so this thesis defines a receptive field using a fixed number of closest neighbors to the central vertex.
 A receptive field can also be defined using a threshold $\delta>0$ such that all vertices closer to the central vertex than the threshold are included in the receptive field.
-All neighbors in a receptive field are guaranteed to share an edge with the central vertex, allowing the application of equations \ref{eq:sum_coupling} and \ref{eq:prod_coupling}.
+All neighbors in a receptive field are guaranteed to share an edge with the central vertex, allowing the application of equations (\ref{eq:sum_coupling}) and (\ref{eq:prod_coupling}).
 For incomplete graphs, a receptive field can be defined as all vertices within $k$ hops of the central vertex. 
 If $k=1$, both versions of graph convolution can directly be applied.
 If $k>1$, then product coupled graph convolution can't be directly applied to neighbors more than 1 hop away from the center vertex, since they share no edge with the center. 
 Though there are ways to adapt product coupled graph convolution in this situation, they are not the focus of this thesis.
 %TODO: say more?
 
-These graph convolutions allow the detection of local patterns on a single graph, and produce a new representation at each vertex.
+
+\section{Pairwise Neural Network Architecture}
+These graph convolution operations allow the detection of local patterns on a single graph, and produce a new representation at each vertex.
 Partner specific protein interaction, however, requires classifying pairs of residues in different proteins (vertices in different graphs), which is essentially making predictions on vertices in the product graph. 
 Such predictions are made using a pairwise neural network architecture.
 
-\section{Pairwise Neural Network Architecture}
-A pairwise architecture is comprised of three main sections: the \textit{pre-merge} (or \textit{leg}) layers, the \textit{merge} layer, and the \textit{post-merge} layers.
-See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
-Convolution occurs for on eprotein at a time, so this is performed in the pre-merge layers.
+A pairwise architecture consists first of two identical convolutional modules, each responsible for generating the representation for one of the proteins in the pair.
+These are the \emph{pre-merge} layers.
 A key requirement for the pairwise architecture is symmetry, since the prediction for a pair of residues should be irrespective of which leg is used for each protein.
-To ensure symmetry in the pre-merge layers, weights are shared between layers in the different leges.
-After one or more convolutions, each graph contains a new representation at each vertex. 
-The merge layer then combines the vertex representations from one graph with the vertex representations from the other into pairs. 
+To ensure symmetry in the pre-merge layers, weights are shared between layers in the different legs.
+The merge layer then combines the vertex representations from one graph with the vertex representations from the other into pairs.
 To maintain symmetry, This merge process should also be symmetric.
 For example, the elementwise sum, elementwise product, and outer-product are all commutative and therefore produce symmetric output.
 Another option is to combine pairs asymmetrically, such as concatenating the two representations together, but then average the predictions from each ordering of the representations.
 %TODO: talk about pairwise kernels?
-After merging, the combined representation for each pair of residues is passed through a number of post-merge layers.
+Finally, the combined representation for each pair of residues is passed through a number of post-merge layers.
 The data are represented as pairs of residues at this point. 
-Theoretically, graph convolutions could be performed at this stage as well, this time in the product graph.
-However, the computational and memory requirements of doing so prove prohibitive since the number of convolutions and the number of neighbors in each convolution increases exponentially.
+Theoretically, graph convolution could be performed at this stage as well, this time in the product graph.
+However, the computational and memory requirements of doing so prove prohibitive since the number of convolutions and the number of neighbors in each convolution increases quadratically.
 Hence the work in this thesis performs no convolution after merging.
-The final layer has a single output for each pair indicating the prediction for that pair
+The final layer has a single output for each pair indicating the prediction for that pair.
 This output is be compared to an encoded label indicating whether or not the pair constitute part of the true interface. 
+See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
 
 \begin{figure}
 	\centering
 	%\begin{center}
 	\includegraphics[width=0.8\textwidth]{pairwise_network2.pdf}
 	%\end{center}
-	\caption{.}
+	\caption{A pairwise neural network architecture that takes two protein graphs as input. Each leg contains one or more convolutional layers. The resultant graphs are then merged to create representations of residue pairs. After more post-merge layers, a final classification is performed for each pair.}
 	\label{fig:pairwise_arch1}
 \end{figure}
 
-This chapter has presented protein graphs, novel graph convolutions, and pairwise neural network architectures, all of which are components in this thesis' approach to performing partner specific protein interface prediction.
-Chapter \ref{chap:experiments} describes the experiments that were performed and gives discussion of the results.
+This chapter has presented protein graphs, graph convolution operations, and pairwise neural network architectures, all of which are components in this deep learning approach partner specific protein interface prediction.
+Chapter \ref{chap:experiments} describes the experiments that were performed and gives a discussion of the results.
