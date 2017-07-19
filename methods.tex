@@ -91,7 +91,7 @@ This variant is called sum coupled because the neighbor vertex and edge activati
 Because of this, the direct association between a neighbor its edge is lost.
 A variant which maintains the association is \emph{product coupling}, whose output is:
 \begin{equation}
-z_i = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j \odot W^{\textsc{e}} A_{ij}) + b \bigg),
+h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j \odot W^{\textsc{e}} A_{ij}) + b \bigg),
 \label{eq:prod_coupling}
 \end{equation}
 where $\odot$ denotes the elementwise product between two vectors or matrices. 
@@ -114,6 +114,15 @@ If $k>1$, then product coupled graph convolution can't be directly applied to ne
 Though there are ways to adapt product coupled graph convolution in this situation, they are not the focus of this thesis.
 %TODO: say more?
 
+Lastly, to assess the benefit that incorporating information from neighboring residues has on classification performance, the \emph{no convolution} variant is defined as:
+
+\begin{equation}
+h_i(x | W^\textsc{c}, b)= \sigma \bigg( W^{\textsc{c}} x_i + b \bigg),
+\label{eq:no_conv}
+\end{equation}
+
+which resembles the activation of a dense layer in regular neural networks.
+
 
 \section{Pairwise Neural Network Architecture}
 These graph convolution operations allow the detection of local patterns on a single graph, and produce a new representation at each vertex.
@@ -122,7 +131,7 @@ Such predictions are made using a pairwise neural network architecture.
 
 A pairwise architecture consists first of two identical convolutional modules, each responsible for generating the representation for one of the proteins in the pair.
 These are the \emph{pre-merge} layers.
-A key requirement for the pairwise architecture is symmetry, since the prediction for a pair of residues should be irrespective of which leg is used for each protein.
+A key requirement for the pairwise architecture is symmetry, since the prediction for a pair of residues should be the same irrespective of which leg is used for each protein.
 To ensure symmetry in the pre-merge layers, weights are shared between layers in the different legs.
 The merge layer then combines the vertex representations from one graph with the vertex representations from the other into pairs.
 To maintain symmetry, This merge process should also be symmetric.
@@ -139,13 +148,11 @@ This output is be compared to an encoded label indicating whether or not the pai
 See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
 
 \begin{figure}
-	\centering
-	%\begin{center}
-	\includegraphics[width=0.8\textwidth]{pairwise_network2.pdf}
-	%\end{center}
+	\includegraphics{pairwise_network2.pdf}
 	\caption{A pairwise neural network architecture that takes two protein graphs as input. Each leg contains one or more convolutional layers. The resultant graphs are then merged to create representations of residue pairs. After more post-merge layers, a final classification is performed for each pair.}
 	\label{fig:pairwise_arch1}
 \end{figure}
+
 
 This chapter has presented protein graphs, graph convolution operations, and pairwise neural network architectures, all of which are components in this deep learning approach partner specific protein interface prediction.
 Chapter \ref{chap:experiments} describes the experiments that were performed and gives a discussion of the results.
