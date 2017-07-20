@@ -155,6 +155,39 @@ Compared against diffusion convolutions and PAIRpred.
 		\bottomrule
 	\end{tabular}
 	\caption{\small Median area under the receiver operating characteristic curve (AUC) across all complexes in the test set for two variants of Graph Convolutional Networks (GCN), \textit{sum-coupled} (SC) and \textit{product-coupled} (PC). Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method.}
-	\label{tab:results}
+	\label{tab:med_auc}
 \end{center}
 \end{table}
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{lccccc}
+			\toprule
+			\multirow{2}{*}{Method} &
+			Receptive Field & \multicolumn{4}{c}{Layers Before Merge} \\
+			& Size & 1 & {2} & {3} & {4} \\
+			\midrule
+			No Convolution & N/A & \textbf{48} & 55 & 53 & 66 \\\cline{1-6}
+			\multirow{2}{*}{GCN-SC} & 11 & 32 & 28 & 70 & 86 \\
+			& 21 & \textbf{26} & 37 & 56 & 63 \\\cline{1-6}
+			\multirow{2}{*}{GCN-PC} & 11 & 30 & 46 & 26 & 51 \\
+			& 21 & 26 & \textbf{25} & 36 & 37 \\
+			\bottomrule
+		\end{tabular}
+		\caption{\small Median rank of the first positive prediction (RFPP) across all complexes in the test set for two variants of Graph Convolutional Networks (GCN), \textit{sum-coupled} (SC) and \textit{product-coupled} (PC). Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method (lower is better).}
+		\label{tab:med_rfpp}
+	\end{center}
+\end{table}
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{med_rfpp.png}
+	\caption{Median rank of the first positive prediction (RFPP) across all complexes in the test set, separated by complex class. Vertical axes are log scaled. Sum and product coupling are shown for two receptive field sizes each (11 and 21), as well as no convolution, for 1-4 pre-merge layers. Lower RFPP is better. Best performance on rigid complexes is achieved with just one layer in for all networks. Generally, as difficulty increases, so does the number of layers needed to achieve best results.
+		\label{fig:med_rfpp}}
+\end{figure}
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{med_auc.png}
+	\caption{Median area under the receiver operating characteristic curve (AUC) across all complexes in the test set, separated by complex class. Sum and product coupling are shown for two receptive field sizes each (11 and 21), as well as no convolution, for 1-4 pre-merge layers. For rigid and medium difficulty complexes, performance does not significantly increase beyond two layers. For difficult complexes, product coupling is actually hindered beyond 3 layers. No convolution is hindered beyond 2 layers. 
+		\label{fig:med_rfpp}}
+\end{figure}
+
