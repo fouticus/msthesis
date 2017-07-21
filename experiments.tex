@@ -35,8 +35,8 @@ Table \ref{tab:examples} indicates the number of positive and negative examples 
 \end{table}
 
 3D structures are contained in Protein Data Bank (PDB) files, which contain atomic coordinates for each amino acid in the complexes.
-True interfaces were determined using the bound formations, where two amino acids are assumed to be interacting if they are within 6 \AA{} of each other, in consistent with prior work~\cite{ofran2007, ahmad2011, minhas2014}.
-This permits an amino acid residue to interact with multiple partners in the interface.
+True interfaces were determined using the bound formations, where two amino acids are assumed to be interacting if they are within 6 \AA{} of each other, consistent with prior work~\cite{ofran2007, ahmad2011, minhas2014}.
+This permits a residue to interact with multiple partners in the interface.
 
 \subsection{Vertex and Edge Features}
 Prediction must be made using the unbound formation of each protein, since the bound formation is not known a priori.
@@ -145,20 +145,26 @@ Manual model selection was used to identify the best values of the standard devi
 
 \section{Metrics}
 
-Accuracy usually of interest in classification problem, but it's threshold dependent.
-same goes for Precision, Recall, F measure, etc...
-Thresholds can be found through model selection, but more straight forward to use threshold independent measures like the ROC curve, specifies true positive rate for an accepted false positive rate.
-- AUC evaluates overall performance across all thresholds higher is better. 
+Biologists can often learn a lot of useful information from just a few pairs that are known to be a part of the interface. \hl{cite?}
+In the partner specific problem, even this task is difficult, since the number of negative pairs far outweighs the number of positive pairs.
+An imperfect classifier may succeed in giving high scores to interface pairs and some non-interface pairs as well.
+The more assured a researcher can be that top scoring pairs are from the interface, the more useful is the classifier.
 
-Often biologists can learn a lot from just a few interacting pairs. 
-We should have metrics which evaluate performance on just the top measures. 
-One such measure is RFPP, lower is better.
-%TODO: include this?: Another is RFPP PR1
+While measures like accuracy, precision, recall, specificity, and F-score are common for many classification problems, they are dependent on the choice of a particular threshold.
+A metric more appropriate for interface prediction would be the area under the receiver operating characteristic curve (AUC), because it does not rely on a particular choice of threshold.
+Instead, it summarizes the true positive rate across all false positive rates, indicating threshold independent performance of the classifier.
 
-AUC and RFPP can be computed for each complex individually, so we can measure the overall effectiveness of a method using the median value across all methods. 
+In addition, such an extreme class imbalance can imply that AUC is misleading, since the movement of a single positive example can heavily influence the true positive rate compared to the effect that a single negative example has on the false positive rate.
+An alternative measure which more directly captures the usefulness of classifiers is the rank of the first positive prediction (RFPP), where the rank is computed after ordering pairs by classifier score.
+Ideally, the top ranking prediction is truly part of the interface, in which case RFPP is 1.
 
+Interface prediction occurs at the protein complex level, so AUC and RFPP should be calculated with respect to each complex. 
+The performance of a classifier on a set of complexes can then be summarized using median AUC and RFPP across the complexes.
+These metrics closely mimic those used in the PAIRpred paper~\cite{minhas2014}, except that AUC is being calculated individually for each complex instead of overall.
 
 \section{Results}
+
+This section first examines the behavior of sum and product coupled graph convolutions, and then compares their performance to that of PAIRpred and diffusion convolutions.
 
 \subsection{Sum and Product Coupling Performance}
 
@@ -171,25 +177,31 @@ AUC and RFPP can be computed for each complex individually, so we can measure th
 			& Size & 1 & {2} & {3} & {4} \\
 			\midrule
 			No Convolution & N/A & \textbf{0.815} & 0.812 & 0.800 & 0.811  \\\cline{1-6}
-			\multirow{2}{*}{GCN-SC} & 11 & 0.868 & 0.889 & 0.882 & 0.884 \\
+			\multirow{2}{*}{Sum Coupled} & 11 & 0.868 & 0.889 & 0.882 & 0.884 \\
 			& 21 & 0.875 & \textbf{0.903} & 0.880 & 0.890 \\\cline{1-6}
-			\multirow{2}{*}{GCN-PC} & 11 & 0.856 & 0.869 & 0.885 & 0.868 \\
+			\multirow{2}{*}{Product Coupled} & 11 & 0.856 & 0.869 & 0.885 & 0.868 \\
 			& 21 & 0.863 & 0.876 & 0.896 & \textbf{0.899} \\
 			\bottomrule
 		\end{tabular}
-		\caption{Median area under the receiver operating characteristic curve (AUC) across all complexes in the test set for two variants of Graph Convolutional Networks (GCN), \textit{sum-coupled} (SC) and \textit{product-coupled} (PC). Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method.}
+		\caption{Median area under the receiver operating characteristic curve (AUC) across all complexes in the test set for two variants of graph convolution, \textit{sum-coupled} and \textit{product-coupled}. Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method.}
 		\label{tab:med_auc}
 	\end{center}
 \end{table}
 
-\ref{tab:med_auc}
-	- incorporating neighbor info helps b/c convolutions do better than no convolution
-	- the larger receptive field tends to benefit as well. roughly the size of an average interface in the dataset (number? basir?).
-	- Number of layers may be tends to help to a point, but then decreases (even for product coupling which is not shown).
-		- best for no-convolution is 1 layer, suggesting that just is deeper better, but also that stacked convolutions help. this suggests a useful hierarchical representation is being learned. 
-		- depth limit could be due to small amount of data.
-		- vanishing gradient?
-	- Sum coupling appears to do better, but AUC is only part of the story.
+Table \ref{tab:med_auc} shows the results of experiments involving sum coupled and product coupled graph convolution, as well as no graph convolution.
+Comparing convolution to no convolution reveals that convolution is beneficial.
+Specifically, incorporating information from neighboring residues helps indicate whether a particular residue is part of an interface, which is consistent with the biological properties of interfaces.
+It's also clear that a receptive field of size 21 is generally better than 11.
+For larger receptive fields, this trend does not continue, as performance drops (data not shown).
+Interestingly, this value is approximately the size of a typical interface \hl{get number from basir?}.
+When using convolution, performance improves with network depth up to a point, then decreases (this is true for product coupling as well, though the data are not shown).
+In contrast, networks without convolution are best with only one pre-merge layer.
+This suggests that depth alone does not improve performance, but when convolution is performed, a useful hierarchical representation is learned.
+Other applications of deep learning have seen this same trend of increasing and decreasing performance.
+Possible explanations include insufficient training data, a vanishing gradient, and a problem which is difficult to optimize~\cite{he2015}.
+This results also indicate that in most cases, sum coupled graph convolution outperforms product coupled convolution.
+This observation is counterintuitive under the premise that product coupling better exploits structure in the input by associating neighbor and edge through elementwise product.
+However, AUC is just one measure of performance, and so RFPP must also be examined.
 	
 \begin{table}
 	\begin{center}
@@ -211,37 +223,40 @@ AUC and RFPP can be computed for each complex individually, so we can measure th
 	\end{center}
 \end{table}
 
-\ref{tab:med_rfpp}
-	- Here product coupling does same or better than sum coupling for all but one case.
-	- product coupling detects more specific patterns since it associates each neighbor with its edge. So perhaps better able to detect the specific patterns indicitave of the most interface pairs.
-	- remember, Algorithm is optimizing for overall loss, not RFPP.
-	
+Table \ref{tab:med_rfpp} parallels Table \ref{tab:med_auc} but shows RFPPs instead of AUCs.
+As before, convolution generally outperforms no convolution, the few exceptions being sum coupled variants with a smaller receptive field.
+In this case, however, product coupling outperforms sum coupling for all but one case.
+If we accept that product coupling \emph{does} detect more specific patterns than sum coupling, then a lower RFPP may indicate that this property allows the network to better detect the specific patterns which occur in the most  obvious interface pairs.
+Unfortunately, the best RFPP performance does not coincide with the best AUC performance, except when not convolving.
+This is unsurprising, since the cross-entropy loss function leads to optimization of performance on \emph{all} pairs, not just the top scoring ones.
+In other words, RFPP is not being explicitly optimized in this example, whereas AUC is more closely related to the quantity being optimized.
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{med_auc.png}
 	\caption{Median area under the receiver operating characteristic curve (AUC) across all complexes in the test set, separated by complex class. Sum and product coupling are shown for two receptive field sizes each (11 and 21), as well as no convolution, for 1-4 pre-merge layers. Product coupling performs better for difficult complexes, but worse overall because ther are far more rigid and medium difficulty complexes.
 		\label{fig:med_auc}}
 \end{figure}
 	
-results more interesting when separate by difficulty:
-33, 16, 6
-\ref{fig:med_auc}
-	- Sum and product coupling are closely matched for rigid and medium difficulty complexes, but product coupling clearly doing better on difficult complexes, especially for 2 and 3 layers. 
-	- In overall performance, sum still wins out because there are only 6 hard complexes in the test set.
-	
+To understand the behavior of each method in more detail, we can separate performance by the difficulty class of the test proteins.
+Each chart in Figure \ref{fig:med_auc} shows performance for a single difficulty class, including rigid, medium difficulty, and difficult, with 33, 16, and 6 complexes respectively.
+Here it appears that sum and product coupling are closely matched for rigid and medium difficulty, with sum coupling slightly outperforming product coupling in most cases.
+A much more significant difference is seen for the difficult complexes, where product coupling is clearly doing better, particularly for 2 and 3 layers.
+This implies that the better performance of sum coupling overall is driven by the distribution of difficulty of complexes in the test set.
+In the presence of more difficult complexes, it is likely that product coupling would emerge as the clear winner, restoring our original intuition.
 	
 \begin{figure}
 	\includegraphics[width=0.8\textwidth]{sum_20_2_histo1.png}
-	\caption{Histogram of area under the receiver operating characteristic curve (AUC) for proteins in the test set, colored by difficulty class. Scores are from sum coupled, graph convolution with two layers and receptive field size 21.}
+	\caption{Histogram of area under the receiver operating characteristic curve (AUC) for complexes in the test set, colored by difficulty class. Scores are from sum coupled graph convolution with two layers and receptive field size 21, which had the highest median AUC of all methods.}
 	\label{fig:histo1}
 \end{figure}
 
-For another picture of performance across classes, look at histogram of AUC's
-\ref{fig:histo1}
-	- Note right skewness, which justifies use of median as a measure. 
-	- Note that no clear divide between rigid, medium, and difficult residues. in fact, worst performing residue is rigid and one difficult gets at least a 0.90 AUC
-	- instead, several easy medium appear to be almost "trivial", with scores above 0.95, whereas no difficult complexes exceed that threshold.
-	
-how about RFPP?
+For another picture of performance across difficulty classes, we can look at histogram of AUCs, as shown in Figure \ref{fig:histo1}.
+These AUCs are heavily skewed left, justifying the choice of median for a summary measure.
+Surprisingly, there is no clear divide between rigid, medium difficulty, and difficult classes.
+In fact, the worst AUC is a rigid complex, and at least one difficult complex achieves AUC above 0.9.
+It appears that the distinguishing characteristic between classes is the number of complexes that achieve above 0.95 AUC.
+These "trivial" complexes are most frequent in the rigid class, less so in the medium difficulty class, and absent for the difficult class.
+%TODO: so what is it about complexes that makes them easy or hard? look at interface size?	
 	
 \begin{figure}
 	\includegraphics[width=\textwidth]{med_rfpp.png}
@@ -249,6 +264,7 @@ how about RFPP?
 		\label{fig:med_rfpp}}
 \end{figure}
 	
+RFPP can also be broken out by difficulty class.
 \ref{fig:med_rfpp}
 	- some heterogeneus behavior across methods, but some trends. 
 	- For each class, there appears to be a favored number of layers, where depth increases with difficulty.
