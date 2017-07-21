@@ -39,11 +39,22 @@ Spectral methods are based on linear functions in the "frequency domain" of a gr
 %TODO: mention(?): scaling to large graphs difficult because factoring large matrices difficult
 Each filter in a spectral convolution implies a weighting of each frequency in the spectral decomposition of the graph~\cite{mallat2009}.
 
-Spatial methods instead define operations in a localized neighborhood of a central vertex~\cite{henaff2015, atwood2016diffusion}.
-Each neighborhood constitutes a receptive field where a convolution operation is performed. 
+Spatial methods instead define operations in a localized neighborhood of a central vertex~\cite{henaff2015, atwood2016}.
+Each neighborhood constitutes a receptive field where a convolution operation is performed.
 Convolution commonly involves a vector of weights and take a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
 %TODO: cite papers with different neighborhood convolution (write more about them?)
-Spatial convolution is more directly analogous to grid based convolution as described in Chapter \ref{chap:neuralnetworks}, but introduce a problem of correspondence when translated to graphs.
+Spatial convolution is more directly analogous to grid based convolution as described in Chapter \ref{chap:neuralnetworks}.
+Figure \ref{fig:spatial_graph_conv} depicts an example spatial graph convolution that is analogous to Figure \ref{fig:convolutionallayer}.
+However, spatial convolution introduces a problem of correspondence when translated to graphs.
+
+\begin{figure}
+	\centering
+	%\begin{center}
+	\includegraphics[width=\textwidth]{conv_graph.pdf}
+	%\end{center}
+	\caption{An example of spatial graph convolution, defining receptive fields around a central vertex. The result of convolution is applied to the central vertex in the graph.}
+	\label{fig:spatial_graph_conv}
+\end{figure}
 
 \subsection{The Problem of Receptive Field Correspondence}
 When convolving on a grid, each receptive field has an identical structure (for example 3x3 pixels in an image), so there is an automatic correspondence between receptive fields, such  that the same weights are applied to corresponding portions of all receptive fields. 
@@ -148,7 +159,7 @@ This output is be compared to an encoded label indicating whether or not the pai
 See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
 
 \begin{figure}
-	\includegraphics{pairwise_network2.pdf}
+	\includegraphics[width=\textwidth]{pairwise_network2.pdf}
 	\caption{A pairwise neural network architecture that takes two protein graphs as input. Each leg contains one or more convolutional layers. The resultant graphs are then merged to create representations of residue pairs. After more post-merge layers, a final classification is performed for each pair.}
 	\label{fig:pairwise_arch1}
 \end{figure}
