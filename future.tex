@@ -1,11 +1,55 @@
 \chapter{Future Work}
 \label{chap:future}
 
-encode edges to generate a representation. This admits deconvolutions
+methods that use more data: unsupervised pretraining, CAPRI, 
 
-ensemble of different depths or connect each conv layer to the output dense layers for the same effect?
+\section{Data}
+
+\section{Unsupervised Pretraining}
+
+use pretraining
+
+convolutional autoencoder
+- deconvolution involves transpose weight matrices. 
+	- encode edges to generate a representation. This admits deconvolutions
+
+\subsection{Alternative Data Sources}
+
+Redundant training data set (with "fair" sampling)
+
+CAPRI, other data sets...
+
+
+\section{Model}
+
+\subsection{Simplicial Complex Convolution}
+
+- concept of edge coupling was to differentiate different neighbors, so not all the same. 
+	this accounts for relationship of neighbors to center vertex. 
+- In image convolutions, groups of "neighbor" pixels are close to one another, so that collectively they may indicate the presence of something interesting in a part of the receptive field. 
+	this is referring to the relationships of neighbors to one another. 
+
+	To capture this we can create a simplicial complex based on some threshold, average activations over vertices for each simplex in the neighborhood, and then max over all simplices to capture interesting "regions" of the receptive field. 
+		- generalization of graph convolution.
+
+
+\subsection{RFPP Optimization}
 
 optimize RFPP with different loss function or method.
 
-basis functions
-generalize to more than single neighbor (simplicial complex?)
+\subsection{Ensembles}
+
+- Bagging ensemble to train domain experts.
+- Different depths to allow multi-resolution approach.
+
+
+\subsection{Multi-coupling}
+
+- capture advantages of sum and product coupling by doing both.
+
+
+\section{Other Problems}
+
+QSAR
+
+

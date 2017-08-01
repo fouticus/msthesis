@@ -52,7 +52,7 @@ However, spatial convolution introduces a problem of correspondence when transla
 	%\begin{center}
 	\includegraphics[width=\textwidth]{conv_graph.pdf}
 	%\end{center}
-	\caption{An example of spatial graph convolution, defining receptive fields around a central vertex. The result of convolution is applied to the central vertex in the graph.}
+	\caption{An example of spatial graph convolution, defining receptive fields around a central vertex. The result of convolution is applied to the central vertex in the receptive field.}
 	\label{fig:spatial_graph_conv}
 \end{figure}
 
@@ -132,6 +132,7 @@ h_i(x | W^\textsc{c}, b)= \sigma \bigg( W^{\textsc{c}} x_i + b \bigg),
 \label{eq:no_conv}
 \end{equation}
 
+\noindent
 which resembles the activation of a dense layer in regular neural networks.
 
 
@@ -155,11 +156,20 @@ Theoretically, graph convolution could be performed at this stage as well, this 
 However, the computational and memory requirements of doing so prove prohibitive since the number of convolutions and the number of neighbors in each convolution increases quadratically.
 Hence the work in this thesis performs no convolution after merging.
 The final layer has a single output for each pair indicating the prediction for that pair.
-This output is be compared to an encoded label indicating whether or not the pair constitute part of the true interface. 
+This output is converted to a binary class prediction vector using a softmax function, 
+
+\begin{equation}
+softmax(x) = \bigg[ \frac{e^{-x}}{e^{x} + e^{-x}} , \frac{e^{x}}{e^{x} + e^{-x}} \bigg],
+\label{eq:softmax}
+\end{equation}
+
+\noindent
+the elements of which can be interpreted as class probabilities for the negative (non-interfacial) and positive (interfacial) classes, respectively.
+This output is be compared to an one-hot label vector indicating whether \big($[0, 1]$\big) or not\big($[1, 0]$\big) the pair constitute part of the true interface. 
 See Figure \ref{fig:pairwise_arch1} for a graphical depiction.
 
 \begin{figure}
-	\includegraphics[width=\textwidth]{pairwise_network2.pdf}
+	\includegraphics[width=\textwidth]{pairwise_network3.pdf}
 	\caption{A pairwise neural network architecture that takes two protein graphs as input. Each leg contains one or more convolutional layers. The resultant graphs are then merged to create representations of residue pairs. After more post-merge layers, a final classification is performed for each pair.}
 	\label{fig:pairwise_arch1}
 \end{figure}

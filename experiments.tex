@@ -85,6 +85,7 @@ Therefore automated approaches were abandoned in favor of a manual search.
 Several hyper-parameters were explored manually by training/validating networks under different settings of the hyper-parameters.
 This exploration occurred in a one-hyper-parameter-at-a-time fashion, alleviating the exponential problems encountered with the automated algorithms, but also limiting the ability to explore the interactions between different hyper-parameters.
 Following is a list of different hyper-parameters which were explored and the general trends encountered in each.
+\hl{TODO: fill in details in this list}
 \begin{itemize}
 	\item Number of convolutional layers:
 	\item Number of convolution filters:
@@ -107,18 +108,18 @@ In total, 16 hyper-parameter conditions were tested, all of which used the follo
 The number of filters for networks with one convolutional layer was 256, Likewise for two, three, and four convolutional layers the number of filters was (256, 512), (256, 256, 512), and (256, 256, 512, 512) respectively. 
 After merging examples, dense layers of 256 and 1 units respectively were applied, with the latter producing the model output.
 Loss was computed using weighted cross entropy, a measure of the dissimilarity between two probability distributions. 
-Since this is a binary classification problem, the cross entropy for a single example $x$ is defined as: 
+Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
 
-\hl{Need to figure out this WEIGHTED cross entropy stuff.}
 \begin{equation}
-\mathbb{H}(x, y) = - y 
+\mathbb{H}(x, y | w) = - r ~ y_{i0} ~ log(p_0) - y_{i1} ~ log(p_1)
 \label{eq:weighted_ce}
 \end{equation}
 
-) where the network output for an example $x$ is interpreted as a logit value, $f(x)=log(p/{1-p})$, where $p$ is the predicted probability that the example is a positive.
-
-Most weights were initialized by drawing from a uniform distribution between $-\tau_0$ and $\tau_0$, where $\tau_0=\frac{1}{\sqrt{n_{in}}}$ and $n_{in}$ is the number of inputs to a connected layer. (is this right?) (is this really He initialization?).
-All Biases were initialized to zero.
+\noindent
+where $(p_0, p_1)$ is the network output, $(y_{i0}, y_{i1})$ is the one-hot class label, and $r$ is the ratio of positive to negative examples, which ensures that the set of positive examples and the set of negative examples contributed equally to the loss function.
+All bias weights were initialized to zero.
+All non-bias weights were initialized by drawing from a uniform distribution between $-\tau_0$ and $\tau_0$, where $\tau_0=\frac{1}{\sqrt{n_{in}}}$ and $n_{in}$ is the number of inputs to the layer.
+This is similar to the initialization proposed by He, et at (2015)~\cite{he2015}, except they differ by the small multiplicative constant, $\sqrt{6}$.
 Stochastic gradient descent was performed with a learning rate of 0.1, mini-batch size of 128 pairs, for 80 epochs. 
 Dropout with probability $p=0.5$ was performed during training.
 
@@ -134,14 +135,16 @@ This is consistent with the fact that the no convolution case essentially has a 
 \end{figure}
 
 Graph convolutional networks were compared to PAIRpred, an existing state-of-the-art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al, (2014)~\cite{minhas2014}.
-The original PAIRpred publication used different complexes, slightly different features, and a different experimental protocol, so it was run with.
+The original PAIRpred publication used different complexes, slightly different features, and a different experimental protocol, so it was run with the same features and data that were used in this work for the purpose of comparison.
 Grid search with five-fold cross validation was used to select the optimal kernel and soft margin parameters.
 
 The proposed graph convolution layers were also compared against diffusion convolutions, a spatial graph convolution proposed by Atwood and Towsley, (2016), designed to simulate a diffusion process across each vertex of an input graph~\cite{atwood2016}.
 Diffusion convolutions generate a power series of a weighted adjacency matrix, where each matrix of the power series is the adjacency matrix raised to a unique power.
 In their convolutions, all powers up to a certain limit (the maximum number of "hops").
-This approach only supports a single weight on each edge, so in this case Gaussian normalized distances were used and relative angle was dropped. 
+This approach only supports a single weight on each edge, so in this case Gaussian normalized distances were used and relative angle was omitted.
 Manual model selection was used to identify the best values of the standard deviation parameter in the Gaussian normalization.
+These convolutions do not downsample the input, so it is possible to stack multiple convolutions on top of one another.
+However, additional convolutional layers did not improve performance, so only results from a single layer are shown. 
 
 \section{Metrics}
 
@@ -257,30 +260,33 @@ In fact, the worst AUC is a rigid complex, and at least one difficult complex ac
 It appears that the distinguishing characteristic between classes is the number of complexes that achieve above 0.95 AUC.
 These "trivial" complexes are most frequent in the rigid class, less so in the medium difficulty class, and absent for the difficult class.
 %TODO: so what is it about complexes that makes them easy or hard? look at interface size?	
-	
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{med_rfpp.png}
 	\caption{Median rank of the first positive prediction (RFPP) across all complexes in the test set, separated by complex class. Vertical axes are log scaled. Sum and product coupling are shown for two receptive field sizes each (11 and 21), as well as no convolution, for 1-4 pre-merge layers. Lower RFPP is better. Best performance on rigid complexes is achieved with just one layer for all networks. As difficulty increases, so does the number of layers needed to achieve best results.
 		\label{fig:med_rfpp}}
 \end{figure}
-	
-RFPP can also be broken out by difficulty class.
-\ref{fig:med_rfpp}
-	- some heterogeneus behavior across methods, but some trends. 
-	- For each class, there appears to be a favored number of layers, where depth increases with difficulty.
+
+RFPP can also be separated by difficulty class.
+From figure \ref{fig:med_rfpp} we can observe some heterogeneus behavior across methods, but there are some trends worth noting.
+For each class, there appears to be a favored number of layers where a notable dip (improvement) in RFPP is observed. 
+This optimal depth appears to increase with complex difficulty, suggesting that harder complexes require more layers to achieve best performance.
+This suggests that an ensemble approach with varying depths could perform well on complexes of any difficulty. 
+In most cases, product coupling performs the best, except for rigid bodies and difficult complexes with few layers.
 
 
 
-\subsection{Comparison to Prior Methods}
-
-
+\subsection{Comparison to Other Methods}
 
 \begin{table}
 	\begin{center}
 		\begin{tabular}{l c c c c }
 			\toprule
+
 			\multirow{2}{*}{Method} & \multicolumn{4}{c}{Median AUC} \\
 			& Overall & Rigid & Medium & Difficult \\
+			\midrule
+			PAIRpred      & 0.863        & & & \\
 			\midrule
 			2-hop DCNN ($\sigma=2$\AA{}) & 0.782 & 0.775 & 0.821 & 0.753 \\
 			2-hop DCNN ($\sigma=4$\AA{}) & 0.801 & 0.820 & 0.817 & 0.681 \\
@@ -288,37 +294,29 @@ RFPP can also be broken out by difficulty class.
 			5-hop DCNN ($\sigma=2$\AA{}) & 0.838 & 0.849 & 0.847 & 0.793 \\ 
 			5-hop DCNN ($\sigma=4$\AA{}) & 0.819 & 0.832 & 0.867 & 0.740 \\ 
 			\midrule
-			PAIRpred      & 0.863        & & & \\
-			\midrule
-			GCN-SC (2 layers) & 0.903 & 0.903 & 0.941 & 0.800 \\ 
+
+			Sum Coupled (2 layers) & 0.903 & 0.903 & 0.941 & 0.800 \\ 
 			\bottomrule
 			\\
 		\end{tabular}
 		\caption{Comparison with existing classification methods. 
-			PAIRpred is a state-of-the-art interface prediction method~\cite{minhas2014}, and DCNN is our implementation of the diffusion convolution method~\cite{atwood2016}.
-			For DCNN, we used a single convolutional layer before merging, as more layers did not improve the performance (data not shown). DCNN performed better when the adjacency matrix consisted of a Gaussian function of distance, with a standard deviation of 2\AA{} and 4\AA{}, for 2 and 5 hops. Bold faced value indicates the best performance.}
+			PAIRpred is a state-of-the-art interface prediction method~\cite{minhas2014}, and DCNN is the diffusion convolution method~\cite{atwood2016}.
+			For DCNN, there was a single convolutional layer before merging, as more layers did not improve the performance (data not shown). DCNN performed better when the adjacency matrix consisted of a Gaussian function of distance, with a standard deviation of 2\AA{} and 4\AA{}, for 2 and 5 hops.}
 		\label{tab:results_compare}
 	\end{center}
 	%\end{minipage}
 \end{table}
 
+Figure \ref{tab:results_compare} compares the median AUC of PAIRpred, diffusion convolution (DCNN) with 2 and 5 hops, as well as for distance Gaussian standard deviations of 2 and 4 \AA{}, and the best sum coupled results.
+The proposed graph convolutions outperform both existing methods, \hl{in every class (check for PAIRpred when I get numbers, also write more about PAIRpred)}.
+For DCNN, 5 hops performs better than 2 hops, presumably because it allows information to propagate further across the graph.
+The Gaussian standard deviation directly determines the weights on the edges between vertices, therefore the strength of diffusion along that edge.
+In this context, smaller values limit diffusion to a localized neighborhood for each hop, whereas larger values allow diffusion across longer distances.
+In the 2 hop DCNN, The larger standard deviation allows more diffusion to occur across the graph, compensating for the limited number of hops.
+This explains the overall better performance for $\sigma=4\AA{}$, although for medium and difficult complexes, $\sigma=2\AA{}$ appears to do better. 
+In these cases, the degree of conformational change is greater, making information at larger distances less reliable for prediction for a residue.
+In contrast, the 5 hop DCNN performed better for $\sigma=2AA{}$, suggesting that the larger number of hops allows sufficient information propagation, eliminating the need for diffusion across greater distances for each hop.
+This trend is broken for the medium complexes, however.
 
-\ref{tab:results_compare}
-	- the proposed graph convolutions outperform both PAIRpred and diffusion convolutions, in every class.
-	- pairpred 
-	
-
-
-
-diffusion based on graph connectivity, this is complete graph which might be noisy, explains why smaller stdev were better.
-
-5 hop diffusion did better with smaller STDDEV since more information propagating through hops
-2 hop diffusion did better with larger STDDEV since fewer hops limits information propagation.
-
-
-
-
-
-
-
-
+These results indicate that sum coupled and product coupled convolutions are learning useful representations of each residue that are useful in performing interface prediction.
+Their performance is superior to a state-of-the-art interface prediction method and an existing graph convolution approach. 
