@@ -111,12 +111,22 @@ Loss was computed using weighted cross entropy, a measure of the dissimilarity b
 Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
 
 \begin{equation}
-\mathbb{H}(x, y | w) = - r ~ y_{i0} ~ log(p_0) - y_{i1} ~ log(p_1)
+\mathbb{H}(x_i, y_i | \Theta) = - r ~ y_{i0} ~ log\big(f_0(x_i|\Theta)\big) - y_{i1} ~ log\big(f_1(x_i|\Theta)\big)
 \label{eq:weighted_ce}
 \end{equation}
 
 \noindent
-where $(p_0, p_1)$ is the network output, $(y_{i0}, y_{i1})$ is the one-hot class label, and $r$ is the ratio of positive to negative examples, which ensures that the set of positive examples and the set of negative examples contributed equally to the loss function.
+where $f = (f_0, f_1)$ is the softmax network output, interpreted as class probabilities, $y_i = (y_{i0}, y_{i1})$ is the one-hot class label, and $r$ is the ratio of positive to negative examples, which ensures that the set of positive examples and the set of negative examples contribute equally to the loss function.
+The overall loss function is then:
+
+\begin{equation}
+\mathbb{L}(\Theta | \{x_i\}, \{y_i\}) = \sum_{i} \mathbb{H}(x_i, y_i | \Theta),
+\end{equation}
+
+\noindent
+which sums the cross entropy from each residue pair prediction.
+
+
 All bias weights were initialized to zero.
 All non-bias weights were initialized by drawing from a uniform distribution between $-\tau_0$ and $\tau_0$, where $\tau_0=\frac{1}{\sqrt{n_{in}}}$ and $n_{in}$ is the number of inputs to the layer.
 This is similar to the initialization proposed by He, et at (2015)~\cite{he2015}, except they differ by the small multiplicative constant, $\sqrt{6}$.
@@ -320,3 +330,9 @@ This trend is broken for the medium complexes, however.
 
 These results indicate that sum coupled and product coupled convolutions are learning useful representations of each residue that are useful in performing interface prediction.
 Their performance is superior to a state-of-the-art interface prediction method and an existing graph convolution approach. 
+
+
+
+\subsection{Filter Visualization}
+
+\hl{develop better intuition of behavior of models.}

@@ -91,7 +91,7 @@ This is accomplished by incorporating information from the edges between each ne
 Here are two variants of graph convolution which differ in how the edge information is incorporated, denoted \textit{sum coupled} and \textit{product coupled}.
 For a central vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N}_i$, the output of \emph{sum coupled} graph convolution is:
 \begin{equation}
-h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j + W^{\textsc{e}} A_{ij}) + b \bigg),
+h(x_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j + W^{\textsc{e}} A_{ij}) + b \bigg),
 \label{eq:sum_coupling}
 \end{equation}
 where $x_i$ is the feature vector associated with vertex $i$, $A_{ij}$ is the feature vector associated with edge $(i, j)$, $W^\textsc{c}$, $W^\textsc{n}$ and $W^\textsc{e}$ are weight matrices, and $b$ is a vector of biases. 
@@ -102,7 +102,7 @@ This variant is called sum coupled because the neighbor vertex and edge activati
 Because of this, the direct association between a neighbor its edge is lost.
 A variant which maintains the association is \emph{product coupling}, whose output is:
 \begin{equation}
-h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j \odot W^{\textsc{e}} A_{ij}) + b \bigg),
+h(x_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j \odot W^{\textsc{e}} A_{ij}) + b \bigg),
 \label{eq:prod_coupling}
 \end{equation}
 where $\odot$ denotes the elementwise product between two vectors or matrices. 
@@ -128,7 +128,7 @@ Though there are ways to adapt product coupled graph convolution in this situati
 Lastly, to assess the benefit that incorporating information from neighboring residues has on classification performance, the \emph{no convolution} variant is defined as:
 
 \begin{equation}
-h_i(x | W^\textsc{c}, b)= \sigma \bigg( W^{\textsc{c}} x_i + b \bigg),
+h(x_i | W^\textsc{c}, b)= \sigma \bigg( W^{\textsc{c}} x_i + b \bigg),
 \label{eq:no_conv}
 \end{equation}
 

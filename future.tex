@@ -1,23 +1,138 @@
 \chapter{Future Work}
 \label{chap:future}
 
-methods that use more data: unsupervised pretraining, CAPRI, 
+The work in this thesis is pertinent to emerging methods in machine learning as well as current problems in structural bioinformatics.
+As such, extensions of this work can be made in several distict veins, some focused on model formulation and training procedure, others on other possible applications.
+Several of these extensions are documented below, categorized as either extensions of method or extensions of application.
 
-\section{Data}
+\section{Extensions of Method}
+
+\subsection{Double Coupling and Ensemble Approaches}
+
+As discussed in Chapter \ref{chap:experiments}, sum coupling outperforms product coupling on rigid and medium difficulty complexes, whereas product coupling is better for difficult complexes.
+Therefore it would be reasonable to incorporate both sum and product coupling into a single convolution operation:
+
+\begin{equation}
+h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j) \odot (W^{\textsc{e}} A_{ij}) + W^{\textsc{n}} x_j + W^{\textsc{e}} A_{ij} + b \bigg),
+\label{eq:double_coupling}
+\end{equation}
+
+\noindent
+where here the same weight matrices are used in both the sum coupling and product coupling components to help prevent overfitting. 
+Alternately, separate weight matrices could be used to increase the model's expressive power.
+
+Recall that concerning the RFPP metric, the optimal network depth increased with complex difficulty, where more layers were needed for complexes of greater difficulty. 
+This suggests that a ensemble model with multiple networks of varying depth could perform  better than each individual network.
+Alternative ensemble approaches like \emph{boosting} or \emph{bagging} may benefit as well.
+The former approach trains a sequence of "weak" models, with each added model being trained by giving more importance (loss weight) to examples misclassified by all existing models.
+For interface prediction, this weighting can be performed on a per-complex basis, using RFPP or AUC as an indication of performance on each complex, or on a per-residue-pair basis, using the cross entropy of that specific training example.
+The final prediction is a weighted average of the weak models' predictions, with the weights determined by the validation error of each respective model (with higher weight given to models with lower error).
+The latter approach creates multiple datasets by sampling with replacement from the original data set, and training a different model on each sampled dataset.
+This sampling can be performed at the complex level or the residue pair level.
+Again, the final prediction is a weighted average of the weak models' predictions, weighted according to validation error.
+
+
+
+\subsection{RFPP Optimization}
+
+In practice, it may be more important to a biologist that a classifier give a single good prediction of the interface location, rather than predict the entire interface with a high degree of accuracy.
+This was the original motivation for RFPP as a performance metric.
+However, the existing model uses a loss function which incorporates every training examples, not just the top positive prediction, hence the model is optimized for all examples.
+It could be that optimizing the model for all examples sacrifices performance for the top predictions, and that directly optimizing RFPP could yield better results with respect to RFPP.
+A modified version of the loss function is:
+
+\begin{equation}
+\mathbb{L}(\Theta | {x_i}, {y_i}) = - \max_{i} \big(y_{i1} f_1(x_i)\big),
+\label{eq:rfpp_optimize}
+\end{equation}
+
+\noindent
+which includes only the score of the maximum performing positive example.
+Hence when the loss is minimized, the performance of the highest performing positive example will be maximized.
+This loss function is not differentiable, but sub-gradient methods and differentiable alternatives exist which circumvent this fact.
+This method is currently being investigated by another graduate student in Asa Ben-Hur's research group.
+
+\section{Additional Data Sources}
+
+The success of deep learning methods has been attributed to large volumes of data and deep architectures~\cite{krizhevsky2012}.
+For interface prediction, despite the large volume of recorded protein structures, precious few complexes have been annotated in bound and unbound forms for use in model training and testing. 
+This dependence on small curated subsets of available proteins has potentially limited the full leveraging of deep learning methods, however some opportunities exist for enlarging the training and testing data.
+
+The Docking Benchmark Dataset was conceived as a method to evaluate docking methods, and correspondingly was carefully constructed to be non-redundant with respect to SCOP families, in order to give a fair evaluation. 
+However for training purposes, it may be useful to include redundant proteins simply to provide the model with more training data. 
+
+The Critical Assessment of PRediction of Interactions (CAPRI) is an annual competition aimed at evaluating protein-protein docking methods~\cite{janin2003}, and could also be used to help train or evaluate partner-specific protein interface prediction methods. 
 
 \section{Unsupervised Pretraining}
 
-use pretraining
+Another approach to the problem of limited annotated complexes is to utilize the vast quantity (>125,000) of recorded protein structures via unsupervised pre-training.
+Hinton and Salakhutdinov (2006)~\cite{hinton2006b} proposed a greedy layer-wise training algorithm for a particular form of neural network called an \emph{autoencoder}.
+Training an autoencoder consists of training a sequence of Restricted Boltzmann Machines (RBMs) using unlabeled training data, then "unfolding" these RBMs into encoding and decoding layers which are meant to reconstruct the original input, after creating a compressed representation. 
+These weights can then be fine tuned using back propagation, where the output is further trained to reconstruct the input.
+The encoding portion of the autoencoder can then be used to create efficient representations of the input that can help in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
 
-convolutional autoencoder
-- deconvolution involves transpose weight matrices. 
-	- encode edges to generate a representation. This admits deconvolutions
+Masci et al (2011)~\cite{masci2011} proposed convolutional autoencoders (CAEs) which perform convolution to encode an image and \emph{deconvolution} to decode the image.
+Deconvolution is simply a convolution operation performed on the result of an encoding convolution, with weights being tied between convolution and deconvolution layers.
+For $k$ filters of size $m \times m$ and $c$ channels, the corresponding deconvolution would consist of $c$ filters of size $m \times m$ and $k$ channels, where the weights have been reflected in both spatial dimensions (e.g. the weight(s) for the lower left pixel of the receptive field is now applied to the upper right pixel).
+The spatial reflection allows a particular weight(s) to carry a specific meaning, namely it characterizes the relationship between a particular pixel in an image and a pixel in its encoding.
+To illustrate this, Figure \ref{fig:deconv} shows a deconvolution for a single filter and single channel.
+CAEs are trained in the same greedy, layerwise fashion as conventional autoencoders.
 
-\subsection{Alternative Data Sources}
+\begin{figure}
+%	\includegraphics[width=0.8\textwidth]{deconv_example.png}
+	\caption{
+		\label{fig:deconv}}
+\end{figure}
 
-Redundant training data set (with "fair" sampling)
 
-CAPRI, other data sets...
+The concept of deconvolution can be applied to graph convolutions as well.
+Note that when reflecting image convolution filters, the center weights in the same position.
+In the same way, graph deconvolutions retain the same weight matrices for the central vertex. 
+Furthermore, since all neighbors use the same weights, there is no spatial reflection to be performed.
+Deconvolution simply consists of transposing the center and neighbor weight matrices so that channels become filters and filters become channels.
+For sum coupling, deconvolution becomes:
+
+\begin{equation}
+\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + W^{\textsc{e}*} A_{ij}) + b^* \bigg),
+\label{eq:sum_deconv}
+\end{equation}
+
+\noindent
+where $\hat{x}$ denotes the reconstruction of $x$ after deconvolving, $h_i$ is the convolved representation at vertex $i$, $\tilde{W}^\textsc{c}$ is the transpose of $W^\textsc{c}$, likewise for $\tilde{W}^\textsc{n}$ and $W^\textsc{n}$, and both $W^{\textsc{e}*}$ and $b^*$ are weight matrices with unshared weights. 
+Note that graph convolutions generate representations on vertices of the graph, not the edges, so the non-encoded edge information must be used, and the weight matrix $W^{\textsc{e}*}$ cannot be tied to the encoding matrix $W^{\textsc{e}}$.
+
+Alternately, edge representations could be created in a separate convolution operation, where an edge's receptive field is simply the incident vertices:
+
+\begin{equation}
+h_{ij}(A_{ij} |W^{\textsc{ee}}, W^{\textsc{v}}, b_e) = \sigma\bigg( W^{\textsc{ee}} A_{ij} + \frac{1}{2}\big(
+W^{\textsc{v}} x_i + W^{\textsc{v}} x_j \big) + b_\textsc{e} \bigg),
+\label{eq:edge_conv}
+\end{equation}
+
+\noindent
+where $h_{ij}$ is the representation of edge $(i, j)$ , $W^{\textsc{ee}}$ is the weight matrix associated with the edge, and $W^{\textsc{v}}$ is the weight matrix associated with the incident vertices.
+In this case, vertex convolution can use the encoded edge representations and associated weights.
+Equation (\ref{eq:sum_deconv}) then becomes:
+
+\begin{equation}
+\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, \tilde{W}^\textsc{v}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + \tilde{W}^{\textsc{V}} h_{ij}) + b^* \bigg),
+\label{eq:sum_deconv2}
+\end{equation}
+
+\noindent
+where $\tilde{W}^{\textsc{V}}$ is the transpose of $W^{\textsc{V}}$.
+Edges can also be deconvolved using the edge and vertex representations:
+
+\begin{equation}
+\hat{A_{ij}}(h_{ij} |\tilde{W}^{\textsc{ee}}, \tilde{W}^{\textsc{e}}, b) = \sigma \bigg( \tilde{W}^{\textsc{ee}} A_{ij} + \frac{1}{2}\big(
+\tilde{W}^{\textsc{e}} h_i + \tilde{W}^{\textsc{e}} h_j \big) + b^{*}_\textsc{e} \bigg).
+\label{eq:edge_conv}
+\end{equation}
+
+\noindent
+This added weight sharing and symmetry between convolution and deconvolution operations may allow training of deeper networks which recognize more sophisticated structures.
+
+
 
 
 \section{Model}
@@ -33,23 +148,12 @@ CAPRI, other data sets...
 		- generalization of graph convolution.
 
 
-\subsection{RFPP Optimization}
-
-optimize RFPP with different loss function or method.
-
-\subsection{Ensembles}
-
-- Bagging ensemble to train domain experts.
-- Different depths to allow multi-resolution approach.
-
-
-\subsection{Multi-coupling}
-
-- capture advantages of sum and product coupling by doing both.
-
-
 \section{Other Problems}
 
+scoring of putative dockinng solutions (graph level classification)
+scoring of putative protein folding solutions (graph level classification)
+
 QSAR
+inference on Knowledge graphs
 
 
