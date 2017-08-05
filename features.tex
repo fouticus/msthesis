@@ -1,2 +1,25 @@
 \chapter{Features}
 \label{appendix:features}
+
+The raw data associated with protein structures are found in PDB files, which contain the protein sequence of amino acids and the atomic coordinates of each atom in each amino acid.
+When performing interface prediction, a number of derived features have been found useful, which are either calculated directly from the PDB data, or from other sources such as sequence databases.
+Here, the term \emph{features} describes a vector of values associated with either a vertex or edge in a graph, with vertices corresponding to amino acid residues, and edges the relationships between two residues.
+The term \emph{feature} then is just a single element of the vector.
+Some methods described below generate more than one feature, hence they are grouped into appropriate \emph{categories}.
+This appendix describes each feature category in detail, including the number of features generated, external tools, and a description of the feature.
+
+\section{Vertex Features}
+
+\subsection{Windowed Position Specific Scoring Matrix (PSSM)}
+\noindent
+\emph{Number of features}: 20
+
+\noindent
+\emph{External tools}: PSI-BLAST~\cite{altschul1997}
+
+\noindent
+\emph{Description}:
+The PSSM is a set of features constructed from protein sequence alone, without any structural information.
+It captures the relative abundance of each type of amino acid in proteins which share a similar sequence in a window around the amino acid of interest.
+Proteins with similar sequences to the search window are identified through PSI-BLAST, a position specific, iterative version of BLAST, the Basic Local Alignment and Search Tool~\cite{altschul1990}.
+The 
