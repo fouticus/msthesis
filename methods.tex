@@ -106,15 +106,15 @@ This sum is then multiplied elementwise with a weight vector and summed with the
 
 \subsection{Existing Ordered Method}
 
-An example of an order imposing graph convolution is described by Niepert et al (2016)~\cite{niepert2016} and used in their too, PATCHY-SAN, which performs classification at the group level.
+An example of an order imposing graph convolution is described by Niepert et al (2016)~\cite{niepert2016} and used in their too, PATCHY-SAN, which performs classification at the graph level.
 This method first performs a graph labeling procedure to globally order the vertices.
 This ordering is traversed with a given stride to select a subset of vertices to serve as the centers of convolutions.
 Neighborhoods are constructed around each center vertex using proximity to the graph and ordered according to a \emph{normalization} procedure.
 The ordered vertices serve as the receptive field for convolution at the center vertex.
-If $(x_0, x_1, ... , x_k)$ is ordered set of neighbors, then convolution takes the form:
+If $(x_1, x_2, ... , x_k)$ is the ordered set of vertices, then convolution takes the form:
 
 \begin{equation}
-h(x_i | \{ W_{j} \}, b)= \sigma \bigg( \sum_{j=1}^{k}(W_{j} (x_j)) + b \bigg),
+h(x_i | \{ W_{j} \}, b)= \sigma \bigg( \frac{1}{k} \sum_{j=1}^{k}(W_{j} (x_j)) + b \bigg),
 \label{eq:patchysan}
 \end{equation}
 
@@ -123,7 +123,19 @@ where ${W_j}$ is the set of weight matrices to use on each member of the recepti
 To use this method for residue level interface prediction, convolution is performed at each vertex, so no labeling is necessary. 
 Within a receptive field, the most natural ordering is one which places the center vertex first and orders its neighbors from least to greatest distance from the center. 
 In this way, one weight matrix is used for all center vertices, another for all nearest neighbors, etc.
-%TODO: implement, test, and write about edge convolutions from PATCHY-SAN
+The vertex ordering also imposes a lexicographic ordering on the neighborhood edges as well, so unique weights can be used to generate a signal from each edge. 
+Adding this term to the convolution generates:
+
+\begin{equation}
+h(x_i | \{ W_{j} \}, b)= \sigma \bigg( \frac{1}{k} \sum_{j=1}^{k}(W_{j} (x_j)) + \frac{1}{k^2} \sum_{j = 1}^{k-1} \sum_{l=j+1}^{k}(W_{jk} A_{jk})  + b \bigg),
+\label{eq:patchysan_2e}
+\end{equation}
+
+\noindent
+where $W_{jl}$ is the weight matrix associated with edge $(j, l)$ in the lexicographic ordering.
+Originally, Niepert et al use the global graph ordering to construct a one dimensional grid from the output of graph convolution, separately for vertices and edges.
+They then perform traditional convolution on the results until classifying the graph. 
+For interface prediction however, the edges and vertex signals are averaged together and applied to the central vertex so that repeated graph convolutions may be performed without losing the graph structure.
 
 
 \subsection{Existing Order-Free Methods}
@@ -243,7 +255,7 @@ Such predictions are made using a pairwise neural network architecture.
 A pairwise architecture consists first of two identical convolutional modules, each responsible for generating the representation for one of the proteins in the pair.
 These are the \emph{convolution} layers.
 A key requirement for the pairwise architecture is symmetry, since the prediction for a pair of residues should be the same irrespective of which leg is used for each protein.
-To ensure symmetry in the comvolution layers, weights are shared between layers in the different legs.
+To ensure symmetry in the convolution layers, weights are shared between layers in the different legs.
 The merge layer then combines the vertex representations from one graph with the vertex representations from the other into pairs.
 To maintain symmetry, this merge process should also be symmetric.
 For example, the elementwise sum, elementwise product, and outer-product are all commutative and therefore produce symmetric output.

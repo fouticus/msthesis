@@ -3,9 +3,32 @@
 
 
 
+
+
 \section{Results}
 
-This section first examines the behavior of sum and product coupled graph convolutions, and then compares their performance to that of PAIRpred and diffusion convolutions.
+This section first summarizes the effect of protein size on network training time.
+Then is expores the behavior of sum and product coupled graph convolutions.
+Finally, it compares to PAIRpred and the other variants of graph convolution.
+
+
+\subsection{Training Time}
+
+Figure \ref{fig:train_times} shows a log-log plot of training time as a function of the number of residue pairs in a given complex.
+The lines are roughly linear in this space, indicating a power-law relationship.
+Fitting lines to the data shows that the power is slightly over 1.0 in all cases, showing that training time increases roughly linearly in the number of pairs (see also Table \ref{tab:training_time_powers}), as expected.
+This is due solely to the pairwise nature of the problem, and in non-pairwise cases, the training time would likely scale linearly in the number of vertices.
+
+
+
+that training time increases roughly linearly in the number of convolutional layers, and also that larger receptive fields train more slowly.
+This is consistent with the fact that the no convolution case essentially has a receptive field of size zero.
+
+\begin{figure}
+	\includegraphics[width=0.8\textwidth]{training_times.png}
+	\caption{Training time for pairwise graph convolution neural network, during testing. Times are shown for sum and product coupled convolutions, receptive fields of size 11 and 21, and 1-4 convolutional layers. Training time scales roughly linearly with the number of layers.
+		\label{fig:train_times}}
+		\end{figure}
 
 \subsection{Sum and Product Coupling Performance}
 
@@ -53,9 +76,9 @@ However, AUC is just one measure of performance, and so RFPP must also be examin
 			& Size & 1 & {2} & {3} & {4} \\
 			\midrule
 			No Convolution & N/A & \textbf{48} & 55 & 53 & 66 \\\cline{1-6}
-			\multirow{2}{*}{GCN-SC} & 11 & 32 & 28 & 70 & 86 \\
+			\multirow{2}{*}{Sum Coupled} & 11 & 32 & 28 & 70 & 86 \\
 			& 21 & \textbf{26} & 37 & 56 & 63 \\\cline{1-6}
-			\multirow{2}{*}{GCN-PC} & 11 & 30 & 46 & 26 & 51 \\
+			\multirow{2}{*}{Product Coupled} & 11 & 30 & 46 & 26 & 51 \\
 			& 21 & 26 & \textbf{25} & 36 & 37 \\
 			\bottomrule
 		\end{tabular}
