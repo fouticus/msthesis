@@ -16,19 +16,18 @@ Finally, it compares to PAIRpred and the other variants of graph convolution.
 
 Figure \ref{fig:train_times} shows a log-log plot of training time as a function of the number of residue pairs in a given complex.
 The lines are roughly linear in this space, indicating a power-law relationship.
-Fitting lines to the data shows that the power is slightly over 1.0 in all cases, showing that training time increases roughly linearly in the number of pairs (see also Table \ref{tab:training_time_powers}), as expected.
+Fitting lines to the data shows that the power is slightly over 1.0 in all cases, showing that training time increases roughly linearly in the number of pairs as expected.
 This is due solely to the pairwise nature of the problem, and in non-pairwise cases, the training time would likely scale linearly in the number of vertices.
 
 
-
-that training time increases roughly linearly in the number of convolutional layers, and also that larger receptive fields train more slowly.
-This is consistent with the fact that the no convolution case essentially has a receptive field of size zero.
-
 \begin{figure}
-	\includegraphics[width=0.8\textwidth]{training_times.png}
-	\caption{Training time for pairwise graph convolution neural network, during testing. Times are shown for sum and product coupled convolutions, receptive fields of size 11 and 21, and 1-4 convolutional layers. Training time scales roughly linearly with the number of layers.
+	\includegraphics[width=1.0\textwidth]{training_time_product_coupling_1-4.png}
+	\caption{Training time as a function of number of residue pairs, for a single no convolution layer, as well as four depths of product coupling, receptive field size 21. Linearity in this log-log plot indicates a power law relationship. In this case, the relationship is near linear, with powers of 1.02, 1.22, 1.25, 1.25, and 1.24 respectively for no convolution 1 layer, and product coupling for 1, 2, 3, and 4 layers. All methods examined had similar power law relationships. 
 		\label{fig:train_times}}
-		\end{figure}
+\end{figure}
+
+
+
 
 \subsection{Sum and Product Coupling Performance}
 
@@ -141,28 +140,41 @@ In most cases, product coupling performs the best, except for rigid bodies and d
 
 \begin{table}
 	\begin{center}
-		\begin{tabular}{l c c c c }
+		\begin{tabular}{l c c c c c }
 			\toprule
 			
-			\multirow{2}{*}{Method} & \multicolumn{4}{c}{Median AUC} \\
-			& Overall & Rigid & Medium & Difficult \\
+			\multirow{2}{*}{Method} & \multirow{2}{*}{Settings} &  \multicolumn{4}{c}{Layers} \\
+											 & & 1 & 2 & 3 & 4 \\
 			\midrule
-			PAIRpred      & 0.863        & & & \\
+			PAIRpred~\cite{minhas2014}   & N/A  & (\textbf{0.863})^{$\dagger$} & - & - & - \\
+
 			\midrule
-			2-hop DCNN ($\sigma=2$\AA{}) & 0.782 & 0.775 & 0.821 & 0.753 \\
-			2-hop DCNN ($\sigma=4$\AA{}) & 0.801 & 0.820 & 0.817 & 0.681 \\
+			\multirow{2}{*}{PATCHY-SAN~\cite{niepert2016}}  & $\text{RF}=10$ & 0.862 & 0.867 & 0.883 & 0.891 \\
+										 & $\text{RF}=20$ & 0.850 & 0.875 & \textbf{0.897} & 0.886 \\
 			\midrule
-			5-hop DCNN ($\sigma=2$\AA{}) & 0.838 & 0.849 & 0.847 & 0.793 \\ 
-			5-hop DCNN ($\sigma=4$\AA{}) & 0.819 & 0.832 & 0.867 & 0.740 \\ 
+			\multirow{2}{*}{Fingerprint~\cite{duvenaud2015}}  & $\text{RF}=10$ & 0.857 & 0.850 & 0.863 & 0.833 \\
+										  & $\text{RF}=20$ & 0.861 & 0.867 & 0.881 & \textbf{0.891} \\
 			\midrule
-			
-			Sum Coupled (2 layers) & 0.903 & 0.903 & 0.941 & 0.800 \\ 
+
+			\multirow{6}{*}{R-GCN~\cite{schlichtkrull2017}} & No basis fns, $\text{RF}=10$ & 0.862 & 0.871 & 0.886 & 0.893 \\
+								   & No basis fns, $\text{RF}=20$ & 0.876 & \textbf{0.901} & 0.892 & 0.897 \\
+								   & 2 basis fns, $\text{RF}=10$ & 0.851 & 0.872 & 0.779 & -	   \\
+								   & 2 basis fns, $\text{RF}=20$ & 0.873 & 0.804 & 0.539 & -     \\
+								   & 5 basis fns, $\text{RF}=10$ & 0.870 & 0.747 & 0.748 & -	   \\
+								   & 5 basis fns, $\text{RF}=20$ & 0.867 & 0.900 & 0.709 & -     \\
+			\midrule
+			\multirow{2}{*}{Deep Tensor Networks~\cite{schutt2017}}& $\text{RF}=10$ & 0.853 & 0.872 & 0.878 & 0.861 \\
+			& $\text{RF}=20$ & 0.862 & 0.880 & 0.873 & \textbf{0.885} \\
+			\midrule
+			\multirow{4}{*}{DCNN~\cite{atwood2016}} & 2 hops, $\sigma=2$\AA{} & 0.782 & - & - & - \\
+										& 2 hops, $\sigma=4$\AA{} & 0.801 & - & - & - \\
+										& 5 hops, $\sigma=2$\AA{} & \textbf{0.838} & - & - & - \\ 
+										& 5 hops, $\sigma=4$\AA{} & 0.819 & - & - & - \\ 
+												  
 			\bottomrule
-			\\
+			
 		\end{tabular}
-		\caption{Comparison with existing classification methods. 
-			PAIRpred is a state-of-the-art interface prediction method~\cite{minhas2014}, and DCNN is the diffusion convolution method~\cite{atwood2016}.
-			For DCNN, there was a single convolutional layer before merging, as more layers did not improve the performance (data not shown). DCNN performed better when the adjacency matrix consisted of a Gaussian function of distance, with a standard deviation of 2\AA{} and 4\AA{}, for 2 and 5 hops.}
+		\caption{Comparison with existing classification methods. $\dagger$ PAIRpred is an SVM-based approach, so the result is not really associated with a layer number}
 		\label{tab:results_compare}
 	\end{center}
 	%\end{minipage}

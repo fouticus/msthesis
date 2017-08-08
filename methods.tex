@@ -106,7 +106,7 @@ This sum is then multiplied elementwise with a weight vector and summed with the
 
 \subsection{Existing Ordered Method}
 
-An example of an order imposing graph convolution is described by Niepert et al (2016)~\cite{niepert2016} and used in their too, PATCHY-SAN, which performs classification at the graph level.
+An example of an order imposing graph convolution is described by Niepert et al (2016)~\cite{niepert2016} and used in their tool, \emph{PATCHY-SAN}, which performs classification at the graph level.
 This method first performs a graph labeling procedure to globally order the vertices.
 This ordering is traversed with a given stride to select a subset of vertices to serve as the centers of convolutions.
 Neighborhoods are constructed around each center vertex using proximity to the graph and ordered according to a \emph{normalization} procedure.
@@ -152,7 +152,7 @@ where $\{x_j\}$ is the set of all vertices in the receptive field.
 In the original formulation, no bias term was included, however when used for interface prediction, the version with bias consistently performed better.
 
 As mentioned previously, center vertices may be treated separately from the neighbors, even if all neighbors are treated identically. 
-Schlichtkrull and Kipf (2017)~~\cite{schlichtkrull2017}) propose such an approach.
+Schlichtkrull and Kipf (2017)~~\cite{schlichtkrull2017}) propose such an approach called \emph{Relational Graph Convolutional Networks}, or R-GCN.
 Their methods were developed for use in knowledge bases, graphs structures where the vertices are named entities and the edges capture the many binary relationships between the entities. 
 To convolve a vertex, they look the neighborhood defined by each relation type and sum the signal from all the neighbors in that neighborhood.
 The resultant signal is the sum of signals from all neighborhoods.
