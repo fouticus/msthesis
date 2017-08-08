@@ -58,7 +58,7 @@ Comparing convolution to no convolution reveals that convolution is beneficial.
 Specifically, incorporating information from neighboring residues helps indicate whether a particular residue is part of an interface, which is consistent with the biological properties of interfaces.
 It's also clear that a receptive field of size 21 is generally better than 11.
 For larger receptive fields, this trend does not continue, as performance drops (data not shown).
-Interestingly, this value is approximately the size of a typical interface \hl{get number from basir?}.
+Interestingly, this value is near the median number of interface residues for a single protein: 27.
 When using convolution, performance improves with network depth up to a point, then decreases (this is true for product coupling as well, though the data are not shown).
 In contrast, networks without convolution are best with only one pre-merge layer.
 This suggests that depth alone does not improve performance, but when convolution is performed, a useful hierarchical representation is learned.
