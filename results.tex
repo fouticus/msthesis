@@ -18,6 +18,8 @@ Figure \ref{fig:train_times} shows a log-log plot of training time as a function
 The lines are roughly linear in this space, indicating a power-law relationship.
 Fitting lines to the data shows that the power is slightly over 1.0 in all cases, showing that training time increases roughly linearly in the number of pairs as expected.
 This is due solely to the pairwise nature of the problem, and in non-pairwise cases, the training time would likely scale linearly in the number of vertices.
+Deeper networks take longer to train, and summing over neighbors (as in product coupling), takes longer than just using the central vertex (as in no convolution).
+These trends are as expected. 
 
 
 \begin{figure}
@@ -138,33 +140,71 @@ In most cases, product coupling performs the best, except for rigid bodies and d
 
 \subsection{Comparison to Other Methods}
 
+Figure \ref{tab:results_compare} compares the median AUC of the various existing methods discussed.
+PAIRpred, the state of the art pairwise interface predictor, establishes the baseline for the complexes and features used.
+Interestingly, most of the graph convolution based methods exceed the baseline in in the best performance examined.
+Diffusion convolution (DCNN) is the exception, showing worse performance than PAIRpred in the best case.
+This is perhaps unsurprising, since it differs considerably from the other convolution methods, which all are very similar to one another.
+
+The order imposing method, PATCHY-SAN, performs quite well, suggesting that the chosen ordering of neighbors by proximity to the central vertex was a natural one.
+Its best AUC of 0.897 is within one standard deviation (0.006) of the best overall performance, which was 0.903 from sum coupled graph convolution.
+Therefore it is difficult to say whether order free or ordered methods perform better in this context. 
+Only one ordered method was examined, leaving the possibility that others may do better.
+Because of the unique weights used for each neighbor, ordered methods have significantly more parameters than order free methods, making them more susceptible to overfitting, though that is not observed in these results.
+This method also uses information from all edges in the receptive field, whereas the other methods are only concerned with edges connecting neighbors to the central vertex.
+
+The best order free method, R-GCN's did the best without basis functions, instead giving a unique weight matrix to the center and neighbors.
+The original intent for basis functions was to allow for weight sharing across several relation types.
+This is less relevant for these protein graphs since only a single neighborhood is being considered per central vertex, and is apparently not beneficial. 
+When using basis functions, larger networks (starting at three layers) appeared to drop significantly in performance compared to other methods.
+At four layers, networks consistently classified all residue pairs with the same exact score, suggesting all filters had become "dead" (zero valued).
+This is possible when using ReLU nonlinearities, since the output and gradient vanishes for signals less than zero.
+It's possible that a different initialization scheme or a different nonlinearity would remedy this problem.
+
+Fingerprint is arguably the simplest form of graph convolution since it uses the same weight matrix for both central and neighbor vertices.
+Its best performance is only 0.01 below that of R-GCN, but it requires twice as many layers.
+
+Whereas PATCHY-SAN, Fingerprint, and R-GCN convolutions are most similar to sum coupling, Deep Tensor Networks allow for a multiplicative coupling between neighbors and edges, similar to product coupling.
+Like product coupling, best performance is achieved at a greater depth than the other methods.
+This method is notably worse than three just mentioned, and also exhibits somewhat erratic behavior for a receptive field of size 21, where it increases, decreases, then increases performance as layers are added. 
+One potentially limiting aspect of this method is that the number of channels in between layers is unchanged.
+This may explain why this method performs worse than product coupling at its best.
+
+
+For DCNN, 5 hops performs better than 2 hops, presumably for the same reason that a larger receptive field is better in the other convolution methods: information is able to propagate further across the graph.
+The Gaussian standard deviation determines the strength of diffusion along each edge, where smaller values limit diffusion to a localized neighborhood for each hop, and larger values allow diffusion across longer distances.
+In the 2 hop DCNN, The larger standard deviation allows more diffusion to occur across the graph, compensating for the limited number of hops.
+This explains the overall better performance for $\sigma=4\AA{}$.
+In contrast, the 5 hop DCNN performed better for $\sigma=2\AA{}$, suggesting that the larger number of hops allows sufficient information propagation, eliminating the need for diffusion across greater distances for each hop.
+
+
 \begin{table}
 	\begin{center}
 		\begin{tabular}{l c c c c c }
 			\toprule
 			
-			\multirow{2}{*}{Method} & \multirow{2}{*}{Settings} &  \multicolumn{4}{c}{Layers} \\
+			\multirow{2}{*}{Method} & \multirow{2}{*}{Variant} &  \multicolumn{4}{c}{Layers} \\
 											 & & 1 & 2 & 3 & 4 \\
 			\midrule
-			PAIRpred~\cite{minhas2014}   & N/A  & (\textbf{0.863})^{$\dagger$} & - & - & - \\
+			PAIRpred~\cite{minhas2014}   & N/A  & (\textbf{0.863})* & - & - & - \\
 
 			\midrule
-			\multirow{2}{*}{PATCHY-SAN~\cite{niepert2016}}  & $\text{RF}=10$ & 0.862 & 0.867 & 0.883 & 0.891 \\
-										 & $\text{RF}=20$ & 0.850 & 0.875 & \textbf{0.897} & 0.886 \\
+			\multirow{2}{*}{PATCHY-SAN~\cite{niepert2016}}  & $\text{RF}=11$ & 0.862 & 0.867 & 0.883 & 0.891 \\
+										 & $\text{RF}=21$ & 0.850 & 0.875 & \textbf{0.897} & 0.886 \\
 			\midrule
-			\multirow{2}{*}{Fingerprint~\cite{duvenaud2015}}  & $\text{RF}=10$ & 0.857 & 0.850 & 0.863 & 0.833 \\
-										  & $\text{RF}=20$ & 0.861 & 0.867 & 0.881 & \textbf{0.891} \\
+			\multirow{2}{*}{Fingerprint~\cite{duvenaud2015}}  & $\text{RF}=11$ & 0.857 & 0.850 & 0.863 & 0.833 \\
+										  & $\text{RF}=21$ & 0.861 & 0.867 & 0.881 & \textbf{0.891} \\
 			\midrule
 
-			\multirow{6}{*}{R-GCN~\cite{schlichtkrull2017}} & No basis fns, $\text{RF}=10$ & 0.862 & 0.871 & 0.886 & 0.893 \\
-								   & No basis fns, $\text{RF}=20$ & 0.876 & \textbf{0.901} & 0.892 & 0.897 \\
-								   & 2 basis fns, $\text{RF}=10$ & 0.851 & 0.872 & 0.779 & -	   \\
-								   & 2 basis fns, $\text{RF}=20$ & 0.873 & 0.804 & 0.539 & -     \\
-								   & 5 basis fns, $\text{RF}=10$ & 0.870 & 0.747 & 0.748 & -	   \\
-								   & 5 basis fns, $\text{RF}=20$ & 0.867 & 0.900 & 0.709 & -     \\
+			\multirow{6}{*}{R-GCN~\cite{schlichtkrull2017}} & No basis fns, $\text{RF}=11$ & 0.862 & 0.871 & 0.886 & 0.893 \\
+								   & No basis fns, $\text{RF}=21$ & 0.876 & \textbf{0.901} & 0.892 & 0.897 \\
+								   & 2 basis fns, $\text{RF}=11$ & 0.851 & 0.872 & 0.779 & -	   \\
+								   & 2 basis fns, $\text{RF}=21$ & 0.873 & 0.804 & 0.539 & -     \\
+								   & 5 basis fns, $\text{RF}=11$ & 0.870 & 0.747 & 0.748 & -	   \\
+								   & 5 basis fns, $\text{RF}=21$ & 0.867 & 0.900 & 0.709 & -     \\
 			\midrule
-			\multirow{2}{*}{Deep Tensor Networks~\cite{schutt2017}}& $\text{RF}=10$ & 0.853 & 0.872 & 0.878 & 0.861 \\
-			& $\text{RF}=20$ & 0.862 & 0.880 & 0.873 & \textbf{0.885} \\
+			\multirow{2}{*}{Deep Tensor Networks~\cite{schutt2017}}& $\text{RF}=11$ & 0.853 & 0.872 & 0.878 & 0.861 \\
+			& $\text{RF}=21$ & 0.862 & 0.880 & 0.873 & \textbf{0.885} \\
 			\midrule
 			\multirow{4}{*}{DCNN~\cite{atwood2016}} & 2 hops, $\sigma=2$\AA{} & 0.782 & - & - & - \\
 										& 2 hops, $\sigma=4$\AA{} & 0.801 & - & - & - \\
@@ -174,28 +214,29 @@ In most cases, product coupling performs the best, except for rigid bodies and d
 			\bottomrule
 			
 		\end{tabular}
-		\caption{Comparison with existing classification methods. $\dagger$ PAIRpred is an SVM-based approach, so the result is not really associated with a layer number}
+		\caption{Comparison with existing classification methods. Bold values indicate best performance for each method. For reference, retraining the sum coupled graph convolutions ten times with a different random seed yields a standard deviation of 0.006, and other methods are believed to behave similarly. *PAIRpred is an SVM-based approach, so the result is not really associated with a layer number.}
 		\label{tab:results_compare}
 	\end{center}
 	%\end{minipage}
 \end{table}
 
-Figure \ref{tab:results_compare} compares the median AUC of PAIRpred, diffusion convolution (DCNN) with 2 and 5 hops, as well as for distance Gaussian standard deviations of 2 and 4 \AA{}, and the best sum coupled results.
-The proposed graph convolutions outperform both existing methods, \hl{in every class (check for PAIRpred when I get numbers, also write more about PAIRpred)}.
-For DCNN, 5 hops performs better than 2 hops, presumably because it allows information to propagate further across the graph.
-The Gaussian standard deviation directly determines the weights on the edges between vertices, therefore the strength of diffusion along that edge.
-In this context, smaller values limit diffusion to a localized neighborhood for each hop, whereas larger values allow diffusion across longer distances.
-In the 2 hop DCNN, The larger standard deviation allows more diffusion to occur across the graph, compensating for the limited number of hops.
-This explains the overall better performance for $\sigma=4\AA{}$, although for medium and difficult complexes, $\sigma=2\AA{}$ appears to do better. 
-In these cases, the degree of conformational change is greater, making information at larger distances less reliable for prediction for a residue.
-In contrast, the 5 hop DCNN performed better for $\sigma=2AA{}$, suggesting that the larger number of hops allows sufficient information propagation, eliminating the need for diffusion across greater distances for each hop.
-This trend is broken for the medium complexes, however.
-
-These results indicate that sum coupled and product coupled convolutions are learning useful representations of each residue that are useful in performing interface prediction.
-Their performance is superior to a state-of-the-art interface prediction method and an existing graph convolution approach. 
-
 
 
 \subsection{Filter Visualization}
 
-\hl{develop better intuition of behavior of models.}
+It is often difficult to understand the behavior of a model by looking only at the overall performance. 
+For convolutional neural networks on images, intuition can be gained through a variety of methods, including direct visualization of filters, tracking a filter's activation as different regions of the image are occluded, and identifying which images maximally activate each filter. 
+To understand the filters being learned in this pairwise neural network architecture, network scores and filter activations were mapped to a protein complex heatmap.
+Figure \ref{fig:filter_vis} presents color maps on the complex 3HI6 which depict the true interface, maximum predicted scores for each residue, and the activation of two filters from last convolutional layer, for the best performing method (sum coupled, two layers with receptive field size of 21).
+Scores are partner specific, so they are shown for a single residue after taking the maximum over all potential neighbors.
+This partner independent visualization matches well with the true interface.
+In contrast, convolutional filters occur at the residue level and can be visualized directly. 
+The two filters shown illustrate learned features which are useful for interface prediction.
+Specifically, one activates only for buried residues (indicating an \emph{unlikeliness} to participate in an interface), and the other activates only for residues near the true interface.
+
+\begin{figure}
+	\includegraphics[width=0.6\textwidth]{3HI6_collage.png}
+	\caption{PyMOL~\cite{schrodinger2015} visualizations of the best performing test complex (PDB ID 3HI6). Upper left: Ligand (red) and receptor (blue), along with the true interface (yellow). Upper right: Visualization of predicted scores, where brighter colors (cyan and orange) are higher scores and darker colors (blue and red) are lower scores. Since scores are for pairs of residues, we take the max score over all partners in the opposing protein. Bottom row: Activations of two filters in the second convolutional layer, where brighter colors indicate greater activation and black indicates activation of zero. Lower left: Filter which provides higher activations for buried residues, a useful screening criterion for interface detection. Lower right: Filter which gives high activations for residues near the interface of this complex.
+		\label{fig:filter_vis}}
+\end{figure}
+
