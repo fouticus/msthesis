@@ -155,7 +155,10 @@ Though the variety of convolution operations on simplicial complexes are many, o
 In this formulation, rather than sum the signal from all neighbors in the receptive field, each simplex $S_k, k \in \{1, 2,... K\}$ (not counting vertices and edges, which are the lowest order simplexes) in the neighborhood is summed individually and the maximum simplex signal is added to the central signal:
 
 \begin{equation}
-h_i(x |  W^{\textsc{c}}, W^{\textsc{n}}, W^{\textsc{e1}}, W^{\textsc{e2}}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \max_{k} \Big[ \frac{1}{|\mathcal{S}_k|}  \sum_{j \in \mathcal{S}_k} ( W^{\textsc{n}} x_j + W^{\textsc{e1}} A_{ij} ) + \frac{1}{|\mathcal{S}_k|^{2}}\sum_{j, l \in \mathcal{S}_k} (W^{\textsc{e2}} A_{jl}) \Big] + b \bigg).
+\begin{split}
+h_i(x |  & W^{\textsc{c}}, W^{\textsc{n}}, W^{\textsc{e1}}, W^{\textsc{e2}}, b) = \\ 
+&\sigma \bigg( W^{\textsc{c}} x_i + \max_{k} \Big[ \frac{1}{|\mathcal{S}_k|}  \sum_{j \in \mathcal{S}_k} ( W^{\textsc{n}} x_j + W^{\textsc{e1}} A_{ij} ) + \frac{1}{|\mathcal{S}_k|^{2}}\sum_{j, l \in \mathcal{S}_k} (W^{\textsc{e2}} A_{jl}) \Big] + b \bigg).
+\end{split}
 \label{eq:simplicial_complex_conv}
 \end{equation}
 
@@ -168,10 +171,10 @@ The use of simplicial complexes in defining convolution operations is currently 
 \section{Extensions of Application}
 
 Interface prediction is not the only active area of protein research, and so the modeling of proteins and graphs and use of graph convolution could potentially be used for other protein problems as well.
-A common characteristic of docking methods is that they create a high number of putative 3D bound structures. \hl{cite?}
+A common characteristic of docking methods is that they create a high number of putative 3D bound structures~\cite{janin2013}.
 The same pairwise neural network architecture used in this thesis could also be used to evaluate putative docking solutions and rank them in order of likelihood.
 For example, the interface derived from a docking solution could be compared to the interface predicted by a trained pairwise graph convolutional neural network and ranked according to similarity with the network prediction.
-Similarly, much research has been performed in protein folding, which seeks to predict a protein's tertiary structure from sequence alone. \hl{cite?}
+Similarly, much research has been performed in protein modeling, which seeks to predict a protein's secondary and tertiary structures from sequence alone~\cite{schwede2013}.
 Though graph convolutions cannot be used to create protein folds \emph{de novo}, they can be used to evaluate a set of putative folds and likewise rank them.
 In both of these applications, regression is being performed not at the individual vertex level, but at the graph level.
 These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud, Maclaurin, et al (2015)~\cite{duvenaud2015}.
