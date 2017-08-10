@@ -2,14 +2,12 @@
 \label{chap:results}
 
 
-\section{Results}
-
 This section first summarizes the effect of protein size on network training time.
 Then it explores the behavior of Sum and Product Coupling.
 Finally, it compares to PAIRpred and the other variants of graph convolution.
 
 
-\subsection{Training Time}
+\section{Training Time}
 
 Figure \ref{fig:train_times} shows a log-log plot of training time as a function of the number of residue pairs in a given complex.
 The relationship is roughly linear in this space, indicating a power-law relationship.
@@ -29,7 +27,7 @@ These trends are as expected.
 
 
 
-\subsection{Sum and Product Coupling Performance}
+\section{Sum and Product Coupling Performance}
 
 \begin{table}
 	\begin{center}
@@ -135,7 +133,7 @@ In most cases, Product Coupling performs the best, except for rigid bodies and d
 
 
 
-\subsection{Comparison to Other Methods}
+\section{Comparison to Other Methods}
 
 Figure \ref{tab:results_compare} compares the median AUC of the various existing methods discussed.
 PAIRpred, the state of the art pairwise interface predictor, establishes the baseline for the complexes and features used.
@@ -220,7 +218,7 @@ In contrast, the 5 hop DCNN performed better for $\sigma=2\AA{}$, suggesting tha
 
 
 
-\subsection{Filter Visualization}
+\section{Filter Visualization}
 
 It is often difficult to understand the behavior of a model by looking only at the overall performance. 
 For convolutional neural networks on images, intuition can be gained through a variety of methods, including visualization filters directly, tracking a filter's activation as different regions of the image are occluded, and identifying which images maximally activate each filter. 
