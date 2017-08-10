@@ -2,7 +2,7 @@
 \label{chap:future}
 
 The work in this thesis is pertinent to emerging methods in machine learning as well as current problems in structural bioinformatics.
-As such, extensions of this work can be made in several distict veins, some focused on model formulation and training procedure, others on other possible applications.
+As such, extensions of this work can be made in several distict veins, some focused on model formulation and training procedure, others on possible applications outside of interface prediction.
 Several of these extensions are documented below, categorized as either extensions of method or extensions of application.
 
 \section{Extensions of Method}
@@ -23,7 +23,7 @@ Alternately, separate weight matrices could be used to increase the model's expr
 
 Recall that concerning the RFPP metric, the optimal network depth increased with complex difficulty, where more layers were needed for complexes of greater difficulty. 
 This suggests that a ensemble model with multiple networks of varying depth could perform  better than each individual network.
-Alternative ensemble approaches like \emph{boosting} or \emph{bagging} may benefit as well.
+Alternative ensemble approaches like \emph{boosting} or \emph{bagging} may also prove beneficial.
 Boosting trains a sequence of "weak" models, with each added model being trained by giving more importance (loss weight) to examples misclassified by the existing set of models.
 For interface prediction, this weighting can be performed on a per-complex basis, using RFPP or AUC as an indication of performance on each complex, or on a per-residue-pair basis, using the cross entropy loss of that specific training example.
 The final prediction is a weighted average of the weak models' predictions, with the weights determined by the validation error of each respective model (with higher weight given to models with lower error).
@@ -42,7 +42,7 @@ It could be that optimizing the model for all examples sacrifices performance fo
 A modified version of the loss function is:
 
 \begin{equation}
-\mathbb{L}(\Theta | \{x_i\}, \{y_i\}) = - \max_{i} \big(y_{i1} f_1(x_i)\big),
+\mathbb{L}(\Theta | \{x_i, y_i\}) = - \max_{i} \big(y_{i1} f_1(x_i)\big),
 \label{eq:rfpp_optimize}
 \end{equation}
 
@@ -68,13 +68,13 @@ Another approach to the problem of limited labeled complexes is to utilize the v
 Hinton and Salakhutdinov (2006)~\cite{hinton2006b} proposed a greedy layer-wise training algorithm for a particular form of neural network called an \emph{autoencoder}.
 Training an autoencoder consists of training a sequence of Restricted Boltzmann Machines (RBMs) using unlabeled training data, then "unfolding" these RBMs into encoding and decoding layers which are intended to create a compressed representation of the input, before reconstructing the original input from the compressed representation.
 The model weights can then be fine tuned using back propagation, where the output is further trained to reconstruct the input.
-The encoding half of the autoencoder can be used independently of the decoder to create compressed representations of the input that are often useful in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
+The encoding half of the autoencoder can be used independently of the decoding half to create compressed representations of the input that are often useful in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
 
 Masci et al (2011)~\cite{masci2011} proposed convolutional autoencoders (CAEs) which perform convolution to encode an image and \emph{deconvolution} to decode the image.
 There is also a corresponding \emph{unpooling} operation which upsamples images which were pooled during the encoding step.
 Deconvolution is simply a convolution operation performed on the result of an encoding convolution, with weights being tied between convolution and deconvolution layers.
 For $k$ filters of size $m \times m$ and $c$ channels, the corresponding deconvolution would consist of $c$ filters of size $m \times m$ and $k$ channels, where the weights have been reflected in both spatial dimensions (e.g. the weights for the lower left pixel of the receptive field are now applied to the upper right pixel).
-The spatial reflection allows a particular weights to carry a specific meaning, namely it characterizes the relationship between a particular pixel in an image and a pixel in its encoding.
+The spatial reflection allows a particular weight to carry a specific meaning, namely it characterizes the relationship between a particular pixel in an image and a pixel in its encoding.
 To illustrate this, Figure \ref{fig:deconv} shows a deconvolution for a single filter and single channel.
 CAEs are trained in the same greedy, layerwise fashion as conventional autoencoders.
 
@@ -93,7 +93,7 @@ Deconvolution simply consists of transposing the center and neighbor weight matr
 For sum coupling, deconvolution becomes:
 
 \begin{equation}
-\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + W^{\textsc{e}*} A_{ij}) + b^* \bigg),
+\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, W^{\textsc{e}*}, b^*) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + W^{\textsc{e}*} A_{ij}) + b^* \bigg),
 \label{eq:sum_deconv}
 \end{equation}
 
@@ -104,18 +104,18 @@ Note that graph convolutions generate representations on vertices of the graph, 
 Alternately, edge representations could be created in a separate convolution operation, where an edge's receptive field is simply the incident vertices:
 
 \begin{equation}
-h_{ij}(A_{ij} |W^{\textsc{ee}}, W^{\textsc{v}}, b_e) = \sigma\bigg( W^{\textsc{ee}} A_{ij} + \frac{1}{2}\big(
-W^{\textsc{v}} x_i + W^{\textsc{v}} x_j \big) + b_\textsc{e} \bigg),
+h_{ij}(A_{ij} |W^{\textsc{ee}}, W^{\textsc{ev}}, b_e) = \sigma\bigg( W^{\textsc{ee}} A_{ij} + \frac{1}{2}\big(
+W^{\textsc{ev}} x_i + W^{\textsc{ev}} x_j \big) + b_\textsc{e} \bigg),
 \label{eq:edge_conv}
 \end{equation}
 
 \noindent
-where $h_{ij}$ is the representation of edge $(i, j)$ , $W^{\textsc{ee}}$ is the weight matrix associated with the edge, and $W^{\textsc{v}}$ is the weight matrix associated with the incident vertices.
+where $h_{ij}$ is the representation of edge $(i, j)$ , $W^{\textsc{ee}}$ is the weight matrix associated with the edge, and $W^{\textsc{ev}}$ is the weight matrix associated with the incident vertices.
 In this case, vertex deconvolution can use the encoded edge representations and associated weights.
 Equation (\ref{eq:sum_deconv}) then becomes:
 
 \begin{equation}
-\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, \tilde{W}^\textsc{v}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + \tilde{W}^{\textsc{V}} h_{ij}) + b^* \bigg),
+\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, \tilde{W}^\textsc{v}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + \tilde{W}^{\textsc{ev}} h_{ij}) + b^* \bigg),
 \label{eq:sum_deconv2}
 \end{equation}
 
@@ -151,7 +151,7 @@ For example, both the \v{C}ech and Vietoris-Rips definitions can be used to cons
 
 In both definitions, simplices are included in the simplicial complex based on some notion of proximity.
 This means simplicial complexes are naturally equipped to identify groups of neighbors in a neighborhood that are all close to one another, something which can be useful for interface prediction, where local regions of residues may constitute portions of an interface.
-Though the variety of convolution operations on simplicial complexes are many, one example is provided here for the purpose of discussion. 
+Though the number of possible convolution operations on simplicial complexes are many, one example is provided here for the purpose of discussion. 
 In this formulation, rather than sum the signal from all neighbors in the receptive field, each simplex $S_k, k \in \{1, 2,... K\}$ (not counting vertices and edges, which are the lowest order simplexes) in the neighborhood is summed individually and the maximum simplex signal is added to the central signal:
 
 \begin{equation}
@@ -177,10 +177,10 @@ For example, the interface derived from a docking solution could be compared to 
 Similarly, much research has been performed in protein modeling, which seeks to predict a protein's secondary and tertiary structures from sequence alone~\cite{schwede2013}.
 Though graph convolutions cannot be used to create protein folds \emph{de novo}, they can be used to evaluate a set of putative folds and likewise rank them.
 In both of these applications, regression is being performed not at the individual vertex level, but at the graph level.
-These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud, Maclaurin, et al (2015)~\cite{duvenaud2015}.
+These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud and Maclaurin, et al (2015)~\cite{duvenaud2015}.
 
 Any application involving structured data that do not fit naturally into a grid is a potential candidate for graph convolutional approaches.
-As with proteins, other biological and chemical data often meet this criterion.
+Aside from proteins, other biological and chemical data often meet this criterion.
 In particular, Quantitative Structure-Activity Relationship (QSAR) and Quantitative Structure-Property Relationship (QSPR) both attempt to predict chemical behavior and properties of proposed chemical structures in order to identify structures with certain desired properties. 
 Identified structures become candidates for laboratory synthesis and experimentation, a much more laborious and time consuming process. 
 Studies in QSAR and QSPR have long been considered "unquestionably of great importance in modern chemistry and biochemistry"~\cite{karelson1996}.
@@ -188,7 +188,7 @@ Like proteins, chemical structures can be modeled as a graph and used to train g
 This is made possible by the vast and growing databases of chemical structures and their corresponding structures~\cite{olah2008, judson2008}.
 
 Beyond the biochemical realm, graph structured data abound.
-Knowledge bases are collections of structured data in the form of triples indicating \emph{(subject, predicate, object)}, where \emph{subject} and \emph{object} are named entities and \emph{predicate} indicates the relationship between them, and pairs indicating \emph{subject, attribute}, where \emph{attribute} is a type or property label for \emph{subject}.
+Knowledge bases are collections of structured data in the form of triples indicating \emph{(subject, predicate, object)}, where \emph{subject} and \emph{object} are named entities and \emph{predicate} indicates the relationship between them, and pairs indicating \emph{(subject, attribute)}, where \emph{attribute} is a type or property label for \emph{subject}.
 These data can easily be thought of graphs, where entities are vertices each type of predicate is one of many different types of edge features, and each attribute is one of many different types of vertex features.
 Knowledge bases emerge in online information repositories such as YAGO~\cite{mahdisoltani2014}, DBPedia~\cite{auer2007}, and Wikidata~\cite{vrandevcic2014}, and are used in the Google search engine \cite{singhal2012}.
 Due to their large size, knowledge graphs are often under-annotated, where vertex relationships and properties are missing. 

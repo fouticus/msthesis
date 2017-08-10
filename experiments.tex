@@ -1,19 +1,19 @@
-\chapter{Experiments}
+\chapter{Experimental Setup}
 \label{chap:experiments}
 
-The proposed pairwise graph convolutional neural networks were evaluated and compared to existing work in both partner specific interface prediction and graph convolution.
-This chapter outlines the training, validation, and testing data, as well as the experimental procedure and relevant evaluation metrics.
+All of the graph convolution methods described in Chapter \ref{chap:methods} were evaluated on the task of partner specific interface prediction and compared to the existing state of the art method.
+This chapter outlines the training, validation, and testing data used for the evaluation, as well as the experimental procedure and relevant metrics.
 
 \section{Data}
 
-Each model was trained, validated, and tested using complexes from the Docking Benchmark Dataset (DBD) version 5.0~\cite{vreven2015}, a collection of 3D crystalline structures of transient complexes in both the bound and unbound formations. 
+Each model was trained, validated, and tested using complexes from the Docking Benchmark Dataset (DBD) version 5.0~\cite{vreven2015}, a collection of 3D crystalline structures of transient complexes in both the bound and unbound formation. 
 DBD is non-redundant in the sense that no two proteins in one complex are in the same Structural Classification of Proteins (SCOP)~\cite{murzin1995} families as two proteins in another complex, respectively.
-This ensures the dataset is appropriate for testing since methods that perform better on certain SCOP families than others are not unfairly rewarded or penalized.
-Each protein is classified into either \emph{rigid body}, \emph{medium difficulty}, or \emph{difficult}, based on the degree of conformational change of the interfaces.
+This ensures the dataset is appropriate for testing, since methods that perform better on certain SCOP families compared to others are not unfairly rewarded or penalized.
+Each protein is classified into either \emph{rigid body}, \emph{medium difficulty}, or \emph{difficult}, based on the degree of conformational change upon forming the interface.
 This is quantified using the root mean squared deviation of the alpha carbons after unbound and bound structures are superimposed on one another. 
 Training and validation were performed using the 175 complexes that were present in version 4.0 of DBD, whereas the 55 new complexes added in DBD 5.0 were reserved for testing. 
-Training and validation sets were created using a 80\%/20\% partition on the DBD v4.0-only complexes, such that the class proportions in each partition were roughly equivalent.
-Hence there were 140 training complexes and 35 validation complexes.
+Training and validation sets were created using a 80\%/20\% partition on the DBD v4.0 complexes, such that the difficulty class proportions in each partition were roughly equivalent.
+There were 140 training complexes and 35 validation complexes.
 Table \ref{tab:examples} indicates the number of positive and negative examples used from each dataset.
 
 \begin{table}
@@ -37,7 +37,7 @@ Table \ref{tab:examples} indicates the number of positive and negative examples 
 
 3D structures are contained in Protein Data Bank (PDB) files, which contain atomic coordinates for each amino acid in the complexes.
 True interfaces were determined using the bound formations, where two amino acids are assumed to be interacting if they are within 6 \AA{} of each other, consistent with prior work~\cite{ofran2007, ahmad2011, minhas2014}.
-This permits a residue to interact with multiple partners in the interface.
+This definition permits a residue to interact with multiple partners in the interface.
 
 \subsection{Vertex and Edge Features}
 Prediction must be made using the unbound formation of each protein, since the bound formation is not known a priori.
@@ -47,82 +47,85 @@ Vertex features pertain to the degree of residue conservation, accessible surfac
 Edge features capture the distance between two residues and their relative orientation as well.
 More detail on each feature can be found in Appendix \ref{appendix:features}.
 
-\subsection{Missing Data}
+\subsection{Handling Missing Data}
 In some cases, features could not be calculated for a residue, resulting in missing values.
-For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so the Half Sphere Amino Acid Composition, Residue Depth, and $\mathrm{C C_{\alpha} O}$ angle could not be calculated.
-Most features rely on third party software to calculate the features from the raw sequence and structure information.
-For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to a software fault.
-These complexes were omitted during model selection but re-introduced before testing.
+For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features\footnote{Specifically Half Sphere Amino Acid Composition, Residue Depth, and $\mathrm{C C_{\alpha} O}$, see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
+Most features rely on third party software to calculate the features from the PDB data.
+For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to an unknown third party software fault.
+These complexes were omitted during model selection but re-introduced with imputed values before testing.
 Two other complexes, 1NW9 and 1PPE, were also excluded during model selection due to a software bug.
 This bug was eventually fixed, so these were also included during testing. 
-During model selection, missing values were imputed using the feature mean within a proteins, whereas for testing, the global median (within the training, validation, or test set) was used.
+During model selection, missing values were imputed using the protein mean, whereas for testing, the global median (within the training, validation, or test set) was used.
 In total there were 138 training and 34 validation complexes during model selection, and there were 175 training and 55 test complexes during testing.
 %TODO: find total number of nans?
 
 \section{Experimental Procedure}
 
 Experimentation was conducted in two phases: model selection, and final testing.
-The model selection phase concerned the selection of model \emph{hyper-parameters}, those details which are not explicit model parameters but nevertheless affect the behavior of the network, for example the number of layers or size of receptive field.
+The model selection phase concerned the selection of model \emph{hyper-parameters}.
 For this phase, pairwise graph convolutional networks were trained using the training set and evaluated on the validation set.
-Once model selection was complete, the final set of model hyper-parameters was used to train and test the most promising hyperparameter configurations and compare them to existing methods.
+Once model selection was complete, the final set of hyper-parameters was used to train and test the most promising hyperparameter configurations and compare them to existing methods.
 For this phase, the model was trained on the combined training and validation sets and tested on the test set.
+More detail about each phase follows.
 
 
 \subsection{Model Selection}
 
 Not only do a network's parameters ($\Theta$) help determine the its output, but the set of hyper-parameters as well.
-Hyper-parameters comprise all model specifications besides the parameters themselves, such as the number and types of layers, number of units/filters in each layers, choice of nonlinear activation function, loss function, and training details.
+Hyper-parameters comprise all model specifications besides the parameters themselves, such as the number and types of layers, number of units/filters in each layer, nonlinear activation function, loss function, and training procedure.
 Hyper-parameters are typically chosen either by some automated process, or by manual exploration.
 
-Automated hyper-parameter selection processes include a randomized search, grid search, or a sequential, model based optimization (SMBO) algorithm such as a Gaussian Process Optimization or Tree Structured Parzen Estimator Optimization~\cite{bergstra2011}.
+Methods for automated hyper-parameter selection include randomized search, grid search, or  sequential, model based optimization (SMBO) such as a Gaussian Process Optimization or Tree Structured Parzen Estimator Optimization~\cite{bergstra2011}.
 The advantage of these approaches is their ability to automatically search a hyper-parameter space without human intervention. 
 SMBO approaches are able to estimate the performance "response surface" in hyper-parameter space in order to efficiently find the optimum value.
-The disadvantage of these approaches is they can require a large number of iterations in order to converge to optimal parameters if the number of hyperparameters is large and the search space for each is large. 
-It may be also difficult to incorporate human prior knowledge about the optimal set of hyper-parameters into a model based approach.
+The disadvantage of these approaches is they require a large number of iterations in order to converge to optimal parameters if the number of hyperparameters is large and the search space for each is large. 
 Random or grid search are no better.
 For this thesis, some experiments were performed with SMBO algorithms, but none produced hyper-parameters which outperformed results found by human exploration.
 Therefore automated approaches were abandoned in favor of a manual search.
 
 Several hyper-parameters were explored manually by training/validating networks under different settings of the hyper-parameters.
-This exploration occurred in a one-hyper-parameter-at-a-time fashion, alleviating the exponential problems encountered with the automated algorithms, but also limiting the ability to explore the interactions between different hyper-parameters.
+This exploration occurred in a one-hyper-parameter-at-a-time fashion, alleviating the search space problem encountered with the automated algorithms, but also limiting the ability to explore interactions between different hyper-parameters.
 In some cases, the choice of hyperparameter affected training time and model convergence rate, but had little impact on overall model performance (e.g. the nonlinear activation function, training algorithm, the number of convolutional filters).
-In other cases, few values had to be searched before a reasonable optimum was found (e.g. the number of dense layers after merging, minibatch size, optimization strategy, the gaussian parameter for residue distances).
-Because this manual optimization was iterative, it is impossible to summarize how each potential choice of hyperparameter would change the results from the set of hyperparameters ultimately chosen.
-However, some trends were observed consistently throughout testing and are worth describing below.
+In other cases, few values had to be searched before a local optimum was found (e.g. the number of dense layers after merging, minibatch size, optimization strategy, the gaussian parameter for residue distances).
+Because this manual optimization was iterative, it is impossible to summarize how each alernative  choice of hyperparameter would change the results from the set of hyperparameters ultimately chosen.
+However, some trends were observed consistently throughout testing and are worth describing in more detail.
+This is done below.
 
 As the name implies, deep networks typically perform best with more than one layer. 
 This is indeed the case for pairwise graph convolutional networks, although the benefit begins to diminish beyond 4 layers.
 To illustrate this trend, multiple depths were used during the testing phase.
 Typically convolutional neural networks begin with a small receptive field size which grows in successive convolutional layers.
 In this case, networks performed better if all layers had the same relatively large receptive field, around 21. 
-For comparison, the smallest protein in the data set had 29 residues, so for that protein the receptive field was more than two thirds of the entire graph. 
-During testing, results with receptive field sizes of 11 and 21 were used to enable comparison.
-For image convolutions, it is not uncommon for the number of filters in the first convolutional layer to be roughly an order of magnitude more than the number of input channels, and to increase from there.
-In contrast to images which may have only 1 or 3 channels, protein graphs have 70 features for each vertex, so an analogous increase in the number of filters would quickly tax the memory resources of a GPU. 
-Nevertheless, a larger number of filters proved beneficial, so all graph convolutions started with 256 filters and increased to a size of 512 in the last layer (if the network had more than one layer).
+For comparison, the smallest protein in the data set had 29 residues, so for that protein the receptive field was more than two thirds of the entire protein graph. 
+During testing, receptive field sizes of 11 and 21 were used to enable comparison.
+For image convolutions, it is not uncommon for the number of filters in the first convolutional layer to be roughly an order of magnitude more than the number of input channels, and to increase in subsequent layers.
+In contrast to images which may have only 1 or 3 channels, protein graphs have 70 features for each vertex, so an analogous increase in the number of filters would quickly exceed the memory resources of a GPU.
+Nevertheless, a larger number of filters proved beneficial, so all graph convolutions started with 256 filters and increased to a size of 512 in the last convolution layer (if the network had more than one).
 
 
-In most cases, optimization was performed on the novel graph convolutions and the no convolution case.
+Most model selection was performed on the novel graph convolutions and the "no convolution" case.
 Because most of the the other convolution methods are not appreciably different, an abridged model selection process was performed for them, simply to check whether the same hyperparameters could reasonably be used. 
-The exceptional case was the diffusion convolution, where the gaussian parameter for residue distances was observed to have a significant impact on model performance. 
-For this method, rather than using a value of $\sigma = 18$, much smaller values of 2\AA{} and 4\AA{} were chosen for the testing phase.
+The exceptional case was DCNN, where the gaussian parameter for residue distances was observed to have a significant impact on model performance. 
+For this method, rather than using a value of $\sigma = 18\AA{}$, much smaller values of $2\AA{}$ and $4\AA{}$ were chosen for the testing phase.
 Given that the diffusion is occurring on a complete graph, the smaller values allow only local information to propagate during each hop.
 The other graph convolutional methods do not have this same problem, since they are restricted to a fixed size receptive field. 
 Diffusion convolutions do not downsample the input, so it is possible to stack multiple convolutions on top of one another.
-However, additional convolutional layers did not improve performance, so only results from a single layer were tested.
+However, additional diffusion convolution layers did not improve performance, so only results from a single layer were tested.
 
 \subsection{Model Testing Setup}
 
-Final model testing was performed for all variants of convolution (and the "no convolution" case).
+Final model testing was performed for all variants of convolution and the "no convolution" case.
 For each variant, receptive field sizes of 11 and 21 were tested (the central vertex plus 10 or 20 neighbors, respectively), with one, two, three, and four graph convolutional layers. 
-In total, 16 hyper-parameter conditions were tested, all of which used the following training scheme:
+In total, 16 conditions were tested, except Diffusion convolution as already noted.
+All variants followed the same training scheme:
 The number of filters for networks with one convolutional layer was 256, Likewise for two, three, and four convolutional layers the number of filters was (256, 512), (256, 256, 512), and (256, 256, 512, 512) respectively.
-After merging examples, dense layers of 256 and 1 units respectively were applied, with the latter producing the model output.
+For DTN, the number of filters necessarily matched the number of input features, 70.
+After merging examples via concatenation, dense layers of 256 and 1 units were applied, with the latter producing the model output.
 Loss was computed using weighted cross entropy, a measure of the dissimilarity between two probability distributions.
 Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
 
 \begin{equation}
-\mathbb{H}(x_i, y_i | \Theta) = - r ~ y_{i0} ~ log\big(f_0(x_i|\Theta)\big) - y_{i1} ~ log\big(f_1(x_i|\Theta)\big)
+\mathbb{H}(x_i, y_i | \Theta) = - r ~ y_{i0} ~ log\big(f_0(x_i|\Theta)\big) - y_{i1} ~ log\big(f_1(x_i|\Theta)\big),
 \label{eq:weighted_ce}
 \end{equation}
 
@@ -131,7 +134,7 @@ where $f = (f_0, f_1)$ is the softmax network output, interpreted as class proba
 The overall loss function is then:
 
 \begin{equation}
-\mathbb{L}(\Theta | \{x_i\}, \{y_i\}) = \sum_{i} \mathbb{H}(x_i, y_i | \Theta),
+\mathbb{L}(\Theta | \{x_i, y_i\}) = \sum_{i} \mathbb{H}(x_i, y_i | \Theta),
 \end{equation}
 
 \noindent
@@ -158,10 +161,10 @@ Grid search with five-fold cross validation was used to select the optimal kerne
 
 Biologists can often learn a lot of useful information from just a few pairs that are known to be a part of the interface. \hl{cite?}
 In the partner specific problem, even this task is difficult, since the number of negative pairs far outweighs the number of positive pairs.
-An imperfect classifier may succeed in giving high scores to interface pairs and some non-interface pairs as well.
+An imperfect classifier may succeed in giving high scores to interface pairs but also to some non-interface pairs as well.
 The more assured a researcher can be that top scoring pairs are from the interface, the more useful is the classifier.
 
-While measures like accuracy, precision, recall, specificity, and F-score are common for many classification problems, they are dependent on the choice of a particular threshold.
+While measures like accuracy, precision, recall, specificity, and F-score are common for many classification problems, they are dependent on the choice of a particular classification threshold.
 A metric more appropriate for interface prediction would be the area under the receiver operating characteristic curve (AUC), because it does not rely on a particular choice of threshold.
 Instead, it summarizes the true positive rate across all false positive rates, indicating threshold independent performance of the classifier.
 
@@ -169,6 +172,6 @@ In addition, such an extreme class imbalance can imply that AUC is misleading, s
 An alternative measure which more directly captures the usefulness of classifiers is the rank of the first positive prediction (RFPP), where the rank is computed after ordering pairs by classifier score.
 Ideally, the top ranking prediction is truly part of the interface, in which case RFPP is 1.
 
-Interface prediction occurs at the protein complex level, so AUC and RFPP should be calculated with respect to each complex. 
+Interface prediction occurs at the complex level, so AUC and RFPP should be calculated with respect to each complex. 
 The performance of a classifier on a set of complexes can then be summarized using median AUC and RFPP across the complexes.
 These metrics closely mimic those used in the PAIRpred paper~\cite{minhas2014}, except that AUC is being calculated individually for each complex instead of overall.
