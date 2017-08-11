@@ -49,7 +49,7 @@ More detail on each feature can be found in Appendix \ref{appendix:features}.
 
 \subsection{Handling Missing Data}
 In some cases, features could not be calculated for a residue, resulting in missing values.
-For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features\footnote{Specifically Half Sphere Amino Acid Composition, Residue Depth, and $\mathrm{C C_{\alpha} O}$, see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
+For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features\footnote{Specifically Half Sphere Amino Acid Composition, Residue Depth, and $\text{C C}_{\alpha} \text{O}$, see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
 Most features rely on third party software to calculate the features from the PDB data.
 For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to an unknown third party software fault.
 These complexes were omitted during model selection but re-introduced with imputed values before testing.
