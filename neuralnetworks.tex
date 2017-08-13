@@ -187,6 +187,7 @@ A filter may only detect a particular local feature, so multiple filters can be 
 Note that the output of a convolution layer resembles the structure of the input, so convolutional layers may be stacked.
 
 Convolutional neural networks often incorporate \textit{pooling layers}, which reduce a region of the input (e.g. 3x3 pixels for an image) to a single grid element that takes either the maximum or average value (per channel) of the region. 
+For simplicity in this thesis, grid elements will be called pixels, regardless of grid dimensionality.
 Pooling allows downsampling of the grid, and is often performed between convolutional layers. 
 It's also common to include a series of dense layers after all convolutional layers which combine the results of convolution in a way relevant to the learning task.
 In order to do this, the multichannel input must first be flattened into a one dimensional vector.
@@ -206,7 +207,7 @@ The design of convolutional layers gives rise to certain properties which prove 
 \begin{itemize}
 	\item \textit{Structural awareness.}
 	Convolutional filters are constructed so that they exploit the structural characteristics of the input.
- 	Rather than treat each pixel of an image as independent of all others, convolution operates on local regions of pixels, allowing filters to detect spatial correlations in a straightforward manner.
+ 	Rather than treat each pixel as independent of all others, convolution operates on local regions of pixels, allowing filters to detect spatial correlations in a straightforward manner.
 	\item \textit{Locality}. 
 	Filters are typically significantly smaller than the size of the input, so for a given position, they are operating on a local neighborhood (receptive field) of the input image. 
 	Any features learned by a filter will necessarily be local as well. 

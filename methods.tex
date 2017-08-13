@@ -16,12 +16,13 @@ The features used in this work are drawn from features used in prior interface p
 Likewise, any information about the relationship between two residues can be associated with the relevant edge.
 The edge features used here describe the distance between and relative orientation of two residues.
 These edge features are defined between any two residues in the protein, so the graph is complete. 
-A detailed explanation of each feature is contained in Appendix \ref{appendix:features}
+A detailed explanation of each feature is contained in Appendix \ref{appendix:features}.
 
 This representation is an abstraction of the original protein to a well studied mathematical object, with two notable facts.
 First, the graph itself does not rely on a coordinate system, as is the case when working with raw 3D positions.
-Second, the features contained on the graph are also not tied to a coordinate system, since they simply describe attributes of residues or pairs of residues.
-These facts make a protein graph invariant to rotations or translations in space. 
+Second, the features contained on the graph are also not tied to a coordinate system.
+This is because they either describe coordinate free attributes of individual residues, or they describe relative spatial relationships between two residues.
+These facts make a protein graph invariant to rotations or translations in space.
 However, since the graph was constructed from points in 3D space, local neighborhoods of vertices can be defined using spatial proximity.
 This is useful when designing convolutions that use a local neighborhood as a receptive field.
 With proteins represented as graphs, the remaining task is to design a convolution which operates on graphs. 
@@ -30,42 +31,50 @@ With proteins represented as graphs, the remaining task is to design a convoluti
 Recent years have seen increased attention to problems involving graph structured data, prompting developments in graph convolution to perform various tasks on those data~\cite{bronstein2016}.
 These developments allow leveraging of deep learning techniques, which have shown great success for problems on regular grids.
 Though each variant of graph convolution is tailored to suit the data and problem being addressed, there are some common approaches which merit describing generally.
-These approaches generally fall into one of two categories: \emph{spectral} or \emph{spatial}
+These approaches generally fall into one of two categories: \emph{spectral} or \emph{spatial}.
 
 
-\subsection{General Approaches}
-Spectral methods of graph convolution are based on linear functions in the "frequency domain" of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $I$ is the identity matrix, $W$ is a similarity matrix (containing scalar edge weights), and $D$ is a diagonal matrix containing the degree of each vertex~\cite{bruna2013, henaff2015, kipf2016}.
+\subsection{Spectral and Spatial Graph Convolution}
+Spectral methods of graph convolution are based on linear functions in the frequency domain of a graph, defined using the laplacian operator $\mathcal{L}=I-D^{-1/2}WD^{-1/2}$, where $I$ is the identity matrix, $W$ is a matrix of edge weights, and $D$ is a diagonal matrix containing the degree of each vertex~\cite{bruna2013, henaff2015, kipf2016}.
 Each filter in a spectral convolution implies a weighting of each frequency in the spectral decomposition of the graph~\cite{mallat2009}.
-In physics, the Laplacian operator is used to model the diffusion of a gas in a volume.
+In physics, the Laplacian operator is used to model the process of diffusion.
 In a similar way, the graph Laplacian can be thought of as modeling diffusion along the edges of the graph.
 
 Spatial approaches instead define operations in a localized neighborhood of a central vertex~\cite{henaff2015, atwood2016}.
 Each neighborhood constitutes a receptive field where a convolution operation is performed (see Figure \ref{fig:spatial_graph_conv}).
-Spatial convolution commonly involves a vector of weights and takes a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of grid elements within the receptive field.
+Spatial convolution commonly involves a vector of weights and takes a weighted sum of neighbors, much like a discrete convolution on a grid can be viewed as taking a weighted sum of pixels within the receptive field.
 Spatial convolution is more directly analogous to grid based convolution as described in Chapter \ref{chap:neuralnetworks}.
-Unlike grids, however, spatial graphs suffer from a problem of receptive field correspondence.
+There is a critical difference, however, in that receptive fields from different parts of a graph have no natural correspondence with one another.
 
 \begin{figure}
 	\centering
 	%\begin{center}
 	\includegraphics[width=\textwidth]{conv_graph.pdf}
 	%\end{center}
-	\caption{An example of spatial graph convolution, defining receptive fields around a central vertex. The result of convolution is applied to the central vertex in the receptive field.}
+	\caption{Receptive fields in a graph context, where each receptive field is defined around a central vertex. The result of convolution is applied to the central vertex in the receptive field.}
 	\label{fig:spatial_graph_conv}
 \end{figure}
 
 \subsection{Receptive Field Correspondence in Spatial Convolution}
 
 
-When convolving on a grid, each receptive field has an identical structure, so each pixel in a receptive field can be associated with a unique pixel in a different one.
-Therefore the same set of weights can be applied to each receptive field such that each weight is always applied to the same region within the receptive field.
-With graphs, there is often no such correspondence from one receptive field to another, since vertices are inherently unordered.
-The central vertices may be associated, but the number of neighbors may not even be the same, depending on how the receptive field is defined. 
+Grid receptive fields have defined positions, such as "upper left most" or "bottom middle".
+Therefore weights can be applied consistently across receptive fields such that each weight is always applied to the same position.
+With graphs, there is often no such correspondence between receptive fields, since vertices are inherently unordered and lack a specific position (recall their coordinate free nature).
+The only well defined position is the center, but the problem remains with the neighbors.
+In fact, the number of neighbors may vary from one receptive field to another, depending on the definition of a local neighborhood.
+Figure \ref{fig:grid_vs_graph_rf}
 Hence the consistent application of weights across receptive fields is only possible after these issues have been addressed.
 This is typically done in one of two ways:
 
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{grid_vs_graph_rf.png}
+\caption{The difference between grid receptive fields and graph receptive fields. Grid receptive fields give rise to positions (denoted by color) which are consistent from one receptive field to another. Graphs have no set positions other than the central vertex (in blue).}
+\label{fig:grid_vs_graph_rf}
+\end{figure}
+
 \begin{enumerate}
-	\item \textit{Imposed ordering of neighbors}. This approach establishes a correspondence between two receptive fields by ordering the neighbors in each and associating neighbors of a common position. 
+	\item \textit{Imposed ordering of neighbors}. This approach establishes a correspondence between two receptive fields by ordering the neighbors in each and associating neighbors sharing a common position. 
 	Ordering methods are either based on vertex characteristics, like degree and betweenness centrality, or domain specific knowledge ~\cite{niepert2016, duvenaud2015}.
 	They typically require the number of neighbors in a receptive field to remain the same.
 	This approach allows filter weights which are applied to a particular position in the ordering, which, it is assumed, has some significance across all receptive fields.
@@ -88,7 +97,7 @@ Below is a description of each existing method followed by the novel methods pre
 	%\begin{center}
 	\includegraphics[width=0.8\textwidth]{correspondence_approaches.pdf}
 	%\end{center}
-	\caption{Two approaches of establishing correspondence between the neighbors of receptive fields A and B. Central vertices are shown in blue and neighbors in green. The central vertices always correspond with one another. Left: neighbors are ordered and associated based on position. Unique weights (\textit{$w_2$--$w_4$}) can then be applied to each position in the order. Right: neighbors are left unordered and treated identically. This requires that the same weights (\textit{$w_2$}) be used for all neighbors.}
+	\caption{Two approaches of establishing correspondence between the neighbors of receptive fields A and B. Central vertices are shown in blue and neighbors in green. The central vertices always correspond with one another. Left: neighbors are ordered and placed into correspondence based on position. Unique weights (\textit{$w_2$--$w_4$}) can then be applied to each position in the order. Right: neighbors are left unordered and treated identically. This requires that the same weights (\textit{$w_2$}) be used for all neighbors.}
 	\label{fig:correspondence_approaches}
 \end{figure}
 
@@ -96,17 +105,17 @@ Below is a description of each existing method followed by the novel methods pre
 \subsection{Diffusion Based Method}
 As mentioned, spectral methods utilize the Laplacian operator, which is used to model diffusion processes. 
 Although no spectral methods were examined in this thesis, a non-spectral diffusion method was.
-Atwood and Towsley (2016)~\cite{atwood2016} propose a Diffusion Convolutional Neural Network (DCNN) which uses a graph's similarity matrix into a transition matrix by normalizing rows.
-The transition matrix $P$ is raised to successive exponents, generating a power series, with each power corresponding to random walks of length equivalent to that power.
+Atwood \& Towsley~\cite{atwood2016} propose a Diffusion Convolutional Neural Network (DCNN) which uses a graph's weight matrix as a transition matrix by normalizing rows.
+The transition matrix $P$ is raised to successive exponents, generating a power series, with each power corresponding to all walks of length equivalent to that power.
 For a maximum power of $L$, the activation of a node is:
 
 \begin{equation}
-h(x_i | W^\textsc{c}) = \sigma \bigg( \sum_{l=0}^L (W^\textsc{c}_{l\cdot} \odot P^l X ) \bigg),
+h(x_i | W) = \sigma \bigg( \sum_{l=0}^L (W_{l\cdot} \odot P^l X ) \bigg),
 \label{eq:diffusion}
 \end{equation}
 
 \noindent
-where $W^\textsc{c}$ is a matrix of weights, $\odot$ denotes broadcasted elementwise multiplication, and $X$ is a matrix of all vertices, where each row is a vertex and each column a different feature.
+where $W$ is a matrix of weights, $W_{l\cdot}$ is its $l^{th}$ row, $\odot$ denotes broadcasted elementwise multiplication, and $X$ is a matrix of all vertices, where each row is a vertex and each column a different feature.
 For each power $l$, all vertices that have a random walk of length $l$ that end at the vertex of interest are summed together, weighted by the walk probability.
 This sum is then multiplied elementwise with a weight vector and summed with the result of all other powers to produce the overall signal.
 Unlike other convolutions presented here, this method does not use a receptive field, instead relying on the similarity matrix to indicate proximity.
@@ -114,10 +123,8 @@ Unlike other convolutions presented here, this method does not use a receptive f
 
 \subsection{Ordered Method}
 
-Niepert et al (2016)~\cite{niepert2016} describe an ordered graph convolution that is used in their tool, \emph{PATCHY-SAN}, which performs classification at the graph level.
-This method first performs a graph labeling procedure to globally order the vertices.
-This ordering is traversed with a given stride to select a subset of vertices which serve as the centers of convolutions.
-Local neighborhoods are constructed for each central vertex and ordered according to a \emph{normalization} procedure.
+Niepert, Ahmed, \& Kutzkov~\cite{niepert2016} describe an ordered graph convolution that is used in their tool, \emph{PATCHY-SAN}, which performs classification at the graph level.
+This methods constructs local neighborhoods orders neighboring vertices according to a \emph{normalization} procedure.
 The ordered vertices serve as the receptive field for convolution at the central vertex, which is also in the ordering. 
 If $(x_1, x_2, ... , x_k)$ is the ordered list of vertices, then convolution takes the form:
 
@@ -127,7 +134,7 @@ h(x_i | \{ W_{j} \}, b)= \sigma \bigg( \frac{1}{k} \sum_{j=1}^{k}(W_{j} x_j) + b
 \end{equation}
 
 \noindent
-where $\{W_j\}$ is the set of weight matrices to use on each member of the receptive field.
+where $W_j$ is the weight matrix for position $j$ in the ordering.
 A natural ordering technique is one which places the center vertex first and orders its neighbors from least to greatest distance from the center. 
 In this way, one weight matrix is used for all center vertices, another for all nearest neighbors, etc.
 The vertex ordering also imposes a lexicographic ordering on the neighborhood edges as well, so unique weights can be used to generate a signal from each edge. 
@@ -140,30 +147,30 @@ h(x_i | \{ W_{j} \}, \{ W_{jk} \}, b)= \sigma \bigg( \frac{1}{k} \sum_{j=1}^{k}(
 
 \noindent
 where $W_{jl}$ is the weight matrix associated with edge $(j, l)$ in the lexicographic ordering.
-Originally, Niepert et al use the graph ordering to construct a one dimensional grid from the output of graph convolution, separately for vertices and edges.
-They then perform traditional convolution on the results until classifying the graph as a whole.
+Originally, Niepert et al. convolve vertices and edges separately and combine them in a subsequent layer.
+Classification is then performed on the whole graph level.
 For interface prediction however, the edges and vertex signals are averaged together and applied to the central vertex so that repeated graph convolutions may be performed without losing the graph structure, and no graph labeling is necessary.
-
+Within a receptive field, vertices are ordered based on the residue's distance from the residue of interest.
 
 \subsection{Order Free Methods}
-One of the simplest forms of order free graph convolution was proposed by Duvenaud and Maclaurin, et al (2015)~\cite{duvenaud2015}, which was used for generating molecular \emph{fingerprints}.
+One of the simplest forms of order free graph convolution was proposed by Duvenaud \& Maclaurin, et al.~\cite{duvenaud2015}, which was used for generating molecular \emph{fingerprints}.
 This method uses a single set of weights for all vertices in the receptive field, including the central vertex:
 
 \begin{equation}
-h(x_i | W, b)= \sigma \bigg( W \sum_{j \in \mathcal{F}}x_j + b\bigg),
+h(x_i | W, b)= \sigma \bigg( W x_i +  \frac{1}{|\mathcal{N}_i|} \sum_{j \in \mathcal{N}_i} (W x_j) + b\bigg),
 \label{eq:fingerprint}
 \end{equation}
 
 \noindent
-where $\mathcal{F}$ is the index set of all vertices in the receptive field.
-In the original formulation, no bias term was included
-However, when used for interface prediction, the version with bias consistently performed better.
+where $\mathcal{N}_i$ is the index set of all neighbors of $x_i$.
+In the original formulation, no bias term was included, and the sum was not divided by the neighborhood size.
+However, when used for interface prediction, including the bias and normalization provided better overall results.
 
 As mentioned, center vertices may be treated separately from the neighbors, even if all neighbors are treated identically. 
-Schlichtkrull and Kipf (2017)~~\cite{schlichtkrull2017}) proposed such an approach called \emph{Relational Graph Convolutional Networks}, or R-GCN.
+Schlichtkrull \& Kipf~\cite{schlichtkrull2017} proposed such an approach called \emph{Relational Graph Convolutional Networks}, or R-GCN.
 Their methods were developed for use in knowledge bases, graph structures where the vertices are named entities and the edges capture the many binary relationships between the entities. 
 To convolve a vertex, they take the neighborhood defined by each relation type and sum the signal from all the neighbors in that neighborhood.
-The resultant signal is the sum of signals from all neighborhoods.
+The resultant signal is the sum of signals from each relation type.
 For protein graphs, spacial proximity is the only method for determining neighborhoods that makes sense biologically, so there is only one neighborhood.
 The adapted version of this convolution for use in interface prediction is:
 
@@ -173,39 +180,43 @@ h(x_i | W^\textsc{c}, W^\textsc{n}, b)= \sigma \bigg( W^\textsc{c} x_i + \frac{1
 \end{equation}
 
 \noindent
-where separate weights are used for the center and neighbors. 
+where separate weight matrices, $W^\textsc{c}$ and $W^\textsc{n}$, are used for the center and neighbors, respectively
 In the original version, a different weight matrix was used for each of the many relation types.  
-To reduce the number of model parameters, all weight matrices were simply linear combinations of a set of learnable basis weight matrices:
+To reduce the number of model parameters to tie learning across all relation types, all weight matrices were simply linear combinations of a set of learnable basis weight matrices:
 
 \begin{equation}
-W^\textsc{(c, n)} = \sum_{b} a^\textsc{(c, n)}_b V_b 
+\begin{split}
+W^\textsc{n} = \sum_{b} a^\textsc{n}_b V_b \\
+W^\textsc{c} = \sum_{b} a^\textsc{c}_b V_b 
+\end{split}
 \label{eq:rgcn_basis}
 \end{equation}
 
 \noindent
 where $\{V_b\}$ is a set of basis functions, $a^\textsc{c}$ and $a^\textsc{n}$ are scalar weights that combine the basis functions to create $W^\textsc{c}$ and $W^\textsc{n}$, respectively.
-R-GCNs were examined with and without basis functions.
+For interface prediction, R-GCNs were examined with and without basis functions.
 
 The above order-free methods do not incorporate edge information.
-Sch{\"u}tt et al (2016)~\cite{schutt2017} propose a version called \emph{Deep Tensor Networks} (DTN) which creates a signal for the neighbor vertices as well as the edges which connect them to the central vertex:
+Sch{\"u}tt, Arbabzadah, Chmiela, M{\"u}ller, \& Tkatchenko~\cite{schutt2017} propose a version called \emph{Deep Tensor Neural Networks} (DTNN) which creates a signal for the neighbor vertices as well as the edges which connect them to the central vertex:
 
 \begin{equation}
-h(x_i | W, W^\textsc{n}, W^\textsc{e}, b^\textsc{n}, b^\textsc{e})= x_i + \sum_{j \in \mathcal{N}_i} \sigma \bigg[ W \bigg( (W^\textsc{n} x_j + b^\textsc{n}) \odot (W^\textsc{e} A_{ij} + b^\textsc{e}) \bigg) \bigg],
+h(x_i | W, W^\textsc{n}, W^\textsc{e}, b^\textsc{n}, b^\textsc{e})= x_i + \frac{1}{|\mathcal{N}_i|} \sum_{j \in \mathcal{N}_i} \sigma \bigg[ W \bigg( (W^\textsc{n} x_j + b^\textsc{n}) \odot (W^\textsc{e} A_{ij} + b^\textsc{e}) \bigg) \bigg],
 \label{eq:deep_tensor}
 \end{equation}
 
 \noindent
 where $A_{ij}$ are the features for edge $(i, j)$, and $\odot$ denotes the elementwise product.
-In this formulation, $W^\textsc{n}$ and $W^\textsc{e}$ transform vertices and edges respectively into a common dimensional space, and $W$ transforms their combination back into the dimensionality of the input. 
+In this formulation, $W^\textsc{n}$ and $W^\textsc{e}$ transform vertices and edges respectively into a common space, and $W$ transforms their combination back into the dimensionality of the input. 
 This convolution does not transform the input by any weight matrix, rather it can be viewed as updating the representation at $x_i$ using information from its neighbors.
-This restricts representations to always have the same dimensionality, which is not true in grid convolutions. 
+This restricts representations to always have the same dimensionality, which is not generally required in convolutions. 
+Again, the normalization is omitted from the original formulation, but consistently improves performance.
 Ideally, the central vertex would have a weight matrix.
 Nevertheless, this method uniquely incorporates edge information, so that even while all neighbors use the same weight matrix, the information on their edges is used to differentiate them.
-This concept is carried forward into the novel convolution methods presented below.
+This concept is carried forward into the convolution methods proposed below.
 
 
-\subsection{Novel Order-Free Methods}
-Like DTN, these methods incorporate edge information to help differentiate neighbors, but also avoid imposing an arbitrary ordering on the neighbors in a receptive field.
+\subsection{Proposed Order-Free Methods}
+Like DTNN, these methods incorporate edge information to help differentiate neighbors, but also avoid imposing an arbitrary ordering on the neighbors in a receptive field.
 This is accomplished by incorporating information from the edges between each neighbor and the central vertex.
 Here are two variants of graph convolution which differ only in how the edge information is incorporated, denoted \textit{Sum Coupling} and \textit{Product Coupling}.
 For a central vertex $i$ on the graph and a local neighborhood of vertices $\mathcal{N}_i$, the output of \emph{Sum Coupling} graph convolution is:
@@ -231,8 +242,7 @@ Note the similarity to Equation (\ref{eq:deep_tensor}).
 
 Just as convolution on a regular grid can be applied at any pixel in an image, graph convolution can be applied to any vertex in the graph.
 Hence both can be considered translation invariant.
-
-Both Sum Coupling and Product Coupling graph convolution are translation invariant, don't impose an ordering in the neighbors or a correspondence between receptive fields of any kind, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
+Both Sum Coupling and Product Coupling graph convolution are translation invariant, don't impose an ordering on the neighbors or a correspondence between receptive fields, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
 The receptive fields are always defined around a central vertex, so the results of convolution can be applied to that vertex.
 This retains the graph structure after each convolution, so convolutional layers are stackable, as with images.
 

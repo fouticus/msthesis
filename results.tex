@@ -160,7 +160,7 @@ Note that AUC cannot be calculated when all scores are identical.
 Fingerprint is arguably the simplest form of graph convolution since it uses the same weight matrix for both central and neighbor vertices.
 Its best performance is only 0.01 below that of R-GCN, but it requires twice as many layers.
 
-Whereas PATCHY-SAN, Fingerprint, and R-GCN are most similar to Sum Coupling, DTN allows for a multiplicative coupling between neighbors and edges, similar to Product Coupling.
+Whereas PATCHY-SAN, Fingerprint, and R-GCN are most similar to Sum Coupling, DTNN allows for a multiplicative coupling between neighbors and edges, similar to Product Coupling.
 Like Product Coupling, best performance is achieved at a greater depth than the other methods.
 This method is notably worse than the three just mentioned, and also exhibits somewhat erratic behavior for a receptive field of size 21, where it increases, decreases, then increases performance as layers are added. 
 One potentially limiting aspect of this method is that the number of channels is necessarily unchanged.
@@ -199,7 +199,7 @@ In contrast, the 5 hop DCNN performed better for $\sigma=2\AA{}$, suggesting tha
 								   & 5 basis fns, $\text{RF}=11$ & 0.870 & 0.747 & 0.748 & -	   \\
 								   & 5 basis fns, $\text{RF}=21$ & 0.867 & 0.900 & 0.709 & -     \\
 			\midrule
-			\multirow{2}{*}{DTN~\cite{schutt2017}}& $\text{RF}=11$ & 0.853 & 0.872 & 0.878 & 0.861 \\
+			\multirow{2}{*}{DTNN~\cite{schutt2017}}& $\text{RF}=11$ & 0.853 & 0.872 & 0.878 & 0.861 \\
 			& $\text{RF}=21$ & 0.862 & 0.880 & 0.873 & \textbf{0.885} \\
 			\midrule
 			\multirow{4}{*}{DCNN~\cite{atwood2016}} & 2 hops, $\sigma=2$\AA{} & 0.782 & - & - & - \\

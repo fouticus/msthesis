@@ -1,14 +1,14 @@
 \chapter{Experimental Setup}
 \label{chap:experiments}
 
-All of the graph convolution methods described in Chapter \ref{chap:methods} were evaluated on the task of partner specific interface prediction and compared to the existing state of the art method.
+All of the spatial graph convolution methods described in Chapter \ref{chap:methods} were evaluated on the task of partner specific interface prediction and compared to the existing state of the art method.
 This chapter outlines the training, validation, and testing data used for the evaluation, as well as the experimental procedure and relevant metrics.
 
 \section{Data}
 
 Each model was trained, validated, and tested using complexes from the Docking Benchmark Dataset (DBD) version 5.0~\cite{vreven2015}, a collection of 3D crystalline structures of transient complexes in both the bound and unbound formation. 
 DBD is non-redundant in the sense that no two proteins in one complex are in the same Structural Classification of Proteins (SCOP)~\cite{murzin1995} families as two proteins in another complex, respectively.
-This ensures the dataset is appropriate for testing, since methods that perform better on certain SCOP families compared to others are not unfairly rewarded or penalized.
+This ensures the data set is appropriate for testing, since no complex in the test set will be too similar to a complex in the training set.
 Each protein is classified into either \emph{rigid body}, \emph{medium difficulty}, or \emph{difficult}, based on the degree of conformational change upon forming the interface.
 This is quantified using the root mean squared deviation of the alpha carbons after unbound and bound structures are superimposed on one another. 
 Training and validation were performed using the 175 complexes that were present in version 4.0 of DBD, whereas the 55 new complexes added in DBD 5.0 were reserved for testing. 
@@ -49,7 +49,7 @@ More detail on each feature can be found in Appendix \ref{appendix:features}.
 
 \subsection{Handling Missing Data}
 In some cases, features could not be calculated for a residue, resulting in missing values.
-For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features\footnote{Specifically Half Sphere Amino Acid Composition, Residue Depth, and $\text{C C}_{\alpha} \text{O}$, see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
+For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
 Most features rely on third party software to calculate the features from the PDB data.
 For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to an unknown third party software fault.
 These complexes were omitted during model selection but re-introduced with imputed values before testing.
@@ -57,21 +57,19 @@ Two other complexes, 1NW9 and 1PPE, were also excluded during model selection du
 This bug was eventually fixed, so these were also included during testing. 
 During model selection, missing values were imputed using the protein mean, whereas for testing, the global median (within the training, validation, or test set) was used.
 In total there were 138 training and 34 validation complexes during model selection, and there were 175 training and 55 test complexes during testing.
-%TODO: find total number of nans?
 
 \section{Experimental Procedure}
 
 Experimentation was conducted in two phases: model selection, and final testing.
 The model selection phase concerned the selection of model \emph{hyper-parameters}.
 For this phase, pairwise graph convolutional networks were trained using the training set and evaluated on the validation set.
-Once model selection was complete, the final set of hyper-parameters was used to train and test the most promising hyperparameter configurations and compare them to existing methods.
+Once model selection was complete, the final set of hyper-parameters was used to train and test the most promising hyperparameter configurations and compare them.
 For this phase, the model was trained on the combined training and validation sets and tested on the test set.
 More detail about each phase follows.
 
 
 \subsection{Model Selection}
 
-Not only do a network's parameters ($\Theta$) help determine the its output, but the set of hyper-parameters as well.
 Hyper-parameters comprise all model specifications besides the parameters themselves, such as the number and types of layers, number of units/filters in each layer, nonlinear activation function, loss function, and training procedure.
 Hyper-parameters are typically chosen either by some automated process, or by manual exploration.
 
@@ -119,7 +117,7 @@ For each variant, receptive field sizes of 11 and 21 were tested (the central ve
 In total, 16 conditions were tested, except Diffusion convolution as already noted.
 All variants followed the same training scheme:
 The number of filters for networks with one convolutional layer was 256, Likewise for two, three, and four convolutional layers the number of filters was (256, 512), (256, 256, 512), and (256, 256, 512, 512) respectively.
-For DTN, the number of filters necessarily matched the number of input features, 70.
+For DTNN, the number of filters necessarily matched the number of input features, 70.
 After merging examples via concatenation, dense layers of 256 and 1 units were applied, with the latter producing the model output.
 Loss was computed using weighted cross entropy, a measure of the dissimilarity between two probability distributions.
 Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
@@ -143,7 +141,7 @@ which sums the cross entropy from each residue pair.
 
 All bias weights were initialized to zero.
 All non-bias weights were initialized by drawing from a uniform distribution between $-\tau_0$ and $\tau_0$, where $\tau_0=\frac{1}{\sqrt{n_{in}}}$ and $n_{in}$ is the number of inputs to the layer.
-This is similar to the initialization proposed by He, et at (2015)~\cite{he2015}, except they differ by the small multiplicative constant, $\sqrt{6}$.
+This is similar to the initialization proposed by He, Zhang, Ren \& Sun~\cite{he2015}, except they differ by the small multiplicative constant, $\sqrt{6}$.
 Stochastic gradient descent was performed with a learning rate of 0.1, mini-batch size of 128 pairs, for 80 epochs.
 Dropout with probability $p=0.5$ was performed during training.
 
@@ -151,7 +149,7 @@ The networks were implemented in TensorFlow~\cite{abadi2015} v1.0.1 and trained 
 Training time varied from \hl{9 to 46} minutes, depending on convolution method, network size, GPU card, and computer resource availability.
 
 
-The graph convolution variants were compared to PAIRpred, an existing state-of-the-art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al, (2014)~\cite{minhas2014}.
+The graph convolution variants were compared to PAIRpred, an existing state-of-the-art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al.~\cite{minhas2014}.
 The original PAIRpred publication used different complexes, slightly different features, and a different experimental protocol, so it was run with the same features and data that were used in this work for the purpose of comparison.
 Grid search with five-fold cross validation was used to select the optimal kernel and soft margin parameters.
 
