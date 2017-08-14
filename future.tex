@@ -22,7 +22,7 @@ where here the same weight matrices are used in both the sum coupling and produc
 Alternately, separate weight matrices could be used to increase the model's expressive power.
 
 Recall that concerning the RFPP metric, the optimal network depth increased with complex difficulty, where more layers were needed for complexes of greater difficulty. 
-This suggests that a ensemble model with multiple networks of varying depth could perform  better than each individual network.
+This suggests that an ensemble model with multiple networks of varying depth could perform  better than each individual network.
 Alternative ensemble approaches like \emph{boosting} or \emph{bagging} may also prove beneficial.
 Boosting trains a sequence of "weak" models, with each added model being trained by giving more importance (loss weight) to examples misclassified by the existing set of models.
 For interface prediction, this weighting can be performed on a per-complex basis, using RFPP or AUC as an indication of performance on each complex, or on a per-residue-pair basis, using the cross entropy loss of that specific training example.
@@ -35,21 +35,14 @@ Again, the final prediction is a weighted average of the weak models' prediction
 
 \subsection{RFPP Optimization}
 
-In practice, it may be more important to a biologist that a classifier give a single good prediction of the interface location, rather than predict the entire interface with a high degree of accuracy.
-This was the original motivation for RFPP as a performance metric.
-However, the existing model uses a loss function which incorporates every training example, not just the top positive prediction, hence the model is optimized for all examples.
-It could be that optimizing the model for all examples sacrifices performance for the top predictions, and that directly optimizing RFPP could yield better results with respect to RFPP.
-A modified version of the loss function is:
-
-\begin{equation}
-\mathbb{L}(\Theta | \{x_i, y_i\}) = - \max_{i} \big(y_{i1} f_1(x_i)\big),
-\label{eq:rfpp_optimize}
-\end{equation}
-
-\noindent
-which includes only the score of the maximum performing positive example.
+Predicting an entire interface is a more difficult task than predicting only a few interacting residues in that problem.
+It could be that training a classifier in the former may hinder its performance in the latter.
+An alternative approach would be to just focus on generating a few predictions of high quality (i.e. confidence), which means optimizing performance on just the top positive predictions.
+The existing model uses a loss function which incorporates every training example, not just the top positive prediction, hence the model is optimized for all examples.
+This implies treating RFPP as the primary metric and optimizing it directly.
+An alternate loss function which includes the loss from only the highest scoring positive example could be used.
 Hence when the loss is minimized, the performance of the highest performing positive example will be maximized.
-This loss function is not differentiable, but sub-gradient methods or differentiable alternatives exist which circumvent this limitation.
+Here a sum over all examples has been replaced by a max function, which is not differentiable, but differentiable variants of the loss function could be constructed to enable gradient descent based learning.
 This method is currently being investigated by another student in Professor Ben-Hur's research group.
 
 \subsection{Additional Data Sources}
@@ -66,9 +59,10 @@ The Critical Assessment of PRediction of Interactions (CAPRI) is an annual compe
 
 Another approach to the problem of limited labeled complexes is to utilize the vast quantity (>125,000) of recorded protein structures via unsupervised pre-training.
 Hinton and Salakhutdinov (2006)~\cite{hinton2006b} proposed a greedy layer-wise training algorithm for a particular form of neural network called an \emph{autoencoder}.
-Training an autoencoder consists of training a sequence of Restricted Boltzmann Machines (RBMs) using unlabeled training data, then "unfolding" these RBMs into encoding and decoding layers which are intended to create a compressed representation of the input, before reconstructing the original input from the compressed representation.
-The model weights can then be fine tuned using back propagation, where the output is further trained to reconstruct the input.
-The encoding half of the autoencoder can be used independently of the decoding half to create compressed representations of the input that are often useful in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
+Generally speaking, an autoencoder is simply a network trained to reproduce the input at the output under certain constraints~\cite{goodfellow2016}.
+These constraints, such as undercompleteness, regularization, and sparsity, prevent the network from simply learning an identity mapping of the input, and instead promote the learning of a compressed representation of the input (i.e. an "encoding").
+The portion of the network which compresses the input is called the encoder, while the portion which reconstructs the input from the encoding is called the decoder.
+The encoding half of the autoencoder can be used independently of the decoding half to create representations of the input that are often useful in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
 
 Masci et al (2011)~\cite{masci2011} proposed convolutional autoencoders (CAEs) which perform convolution to encode an image and \emph{deconvolution} to decode the image.
 There is also a corresponding \emph{unpooling} operation which upsamples images which were pooled during the encoding step.
@@ -93,12 +87,12 @@ Deconvolution simply consists of transposing the center and neighbor weight matr
 For sum coupling, deconvolution becomes:
 
 \begin{equation}
-\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, W^{\textsc{e}*}, b^*) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + W^{\textsc{e}*} A_{ij}) + b^* \bigg),
+\hat{x_i}(h_i | W^\textsc{c}, W^\textsc{n}, W^{\textsc{e}*}, b^*) = \sigma \bigg( (W^{\textsc{c}})' h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} \big[ (W^{\textsc{n}})' h_j + W^{\textsc{e}*} A_{ij} \big] + b^* \bigg),
 \label{eq:sum_deconv}
 \end{equation}
 
 \noindent
-where $\hat{x}$ denotes the reconstruction of $x$ after deconvolving, $h_i$ is the convolved representation at vertex $i$, $\tilde{W}^\textsc{c}$ is the transpose of $W^\textsc{c}$, likewise for $\tilde{W}^\textsc{n}$ and $W^\textsc{n}$, and both $W^{\textsc{e}*}$ and $b^*$ are weight matrices with unshared weights. 
+where $\hat{x}$ denotes the reconstruction of $x$ after deconvolving, $h_i$ is the convolved representation at vertex $i$, $(W^\textsc{c})'$ is the transpose of $W^\textsc{c}$, likewise for $(W^\textsc{n})'$ and $W^\textsc{n}$, and both $W^{\textsc{e}*}$ and $b^*$ are weight matrices with unshared weights. 
 Note that graph convolutions generate representations on vertices of the graph, not the edges, so the non-encoded edge information ($A_{ij}$) must be used when deconvolving, and the weight matrix $W^{\textsc{e}*}$ cannot be tied to the encoding matrix $W^{\textsc{e}}$.
 
 Alternately, edge representations could be created in a separate convolution operation, where an edge's receptive field is simply the incident vertices:
@@ -115,18 +109,18 @@ In this case, vertex deconvolution can use the encoded edge representations and 
 Equation (\ref{eq:sum_deconv}) then becomes:
 
 \begin{equation}
-\hat{x_i}(h_i | \tilde{W}^\textsc{c}, \tilde{W}^\textsc{n}, \tilde{W}^\textsc{v}, b) = \sigma \bigg( \tilde{W}^{\textsc{c}} h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (\tilde{W}^{\textsc{n}} h_j + \tilde{W}^{\textsc{ev}} h_{ij}) + b^* \bigg),
+\hat{x_i}(h_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{v}, b) = \sigma \bigg( (W^{\textsc{c}})' h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} \big[ (W^{\textsc{n}})' h_j + (W^{\textsc{ev}}) h_{ij} \big] + b^* \bigg),
 \label{eq:sum_deconv2}
 \end{equation}
 
 \noindent
-where $\tilde{W}^{\textsc{V}}$ is the transpose of $W^{\textsc{V}}$.
+where $(W^{\textsc{V}})'$ is the transpose of $W^{\textsc{V}}$.
 Edges can also be deconvolved using the edge and vertex representations:
 
 \begin{equation}
-\hat{A_{ij}}(h_{ij} |\tilde{W}^{\textsc{ee}}, \tilde{W}^{\textsc{e}}, b) = \sigma \bigg( \tilde{W}^{\textsc{ee}} h_{ij} + \frac{1}{2}\big(
-\tilde{W}^{\textsc{e}} h_i + \tilde{W}^{\textsc{e}} h_j \big) + b^{*}_\textsc{e} \bigg).
-\label{eq:edge_conv}
+\hat{A_{ij}}(h_{ij} | W^{\textsc{ee}}, W^{\textsc{e}}, b) = \sigma \bigg( (W^{\textsc{ee}})' h_{ij} + \frac{1}{2}\big[
+(W^{\textsc{e}})' h_i + (W^{\textsc{e}})' h_j \big] + b^{*}_\textsc{e} \bigg).
+\label{eq:edge_deconv}
 \end{equation}
 
 \noindent
@@ -142,22 +136,22 @@ For example, just as an edge indicates a relationship between two vertices, a tr
 For example, both the \v{C}ech and Vietoris-Rips definitions can be used to construct a simplicial complex from a set of points in an underlying metric space:
 
 \begin{definition}
-	Given a point set $X$ in some metric space and a number $\epsilon>0$, the \v{C}ech complex $C^{\textsc{\v{C}}}_\epsilon$ is the simplicial complex whose simplices are formed as follows. For each subset $S \subset X$ of points, form a ($\epsilon/2$)-ball around each point in $S$, and include $S$ as a simplex (of dimension $|S|$) if there is a common point contained in all of the balls in $S$.
+	Given a point set $X$ in some metric space and a number $\epsilon>0$, the \v{C}ech complex $C^{\textsc{\v{C}}}_\epsilon$ is the simplicial complex whose simplices are formed as follows. For each subset $S \subset X$ of points, form an ($\epsilon/2$)-ball around each point in $S$, and include $S$ as a simplex (of dimension $|S|$) if there is a common point contained in all of the balls in $S$.
 \end{definition}
 
 \begin{definition}
-	Given a point set $X$ in some metric space and a number $\epsilon>0$, the Vietoris-Rips complex $C^{\textsc{VR}}_\epsilon$ is the simplicial complex whose simplices are formed as follows. For each subset $S \subset X$ of points, form a ($\epsilon/2$)-ball around each point in $S$, and include $S$ as a simplex (of dimension $|S|$) if for each pair of balls in $S$ there is a common point contained in both balls.
+	Given a point set $X$ in some metric space and a number $\epsilon>0$, the Vietoris-Rips complex $C^{\textsc{VR}}_\epsilon$ is the simplicial complex whose simplices are formed as follows. For each subset $S \subset X$ of points, form an ($\epsilon/2$)-ball around each point in $S$, and include $S$ as a simplex (of dimension $|S|$) if for each pair of balls in $S$ there is a common point contained in both balls.
 \end{definition}
 
 In both definitions, simplices are included in the simplicial complex based on some notion of proximity.
-This means simplicial complexes are naturally equipped to identify groups of neighbors in a neighborhood that are all close to one another, something which can be useful for interface prediction, where local regions of residues may constitute portions of an interface.
+This means simplicial complexes are naturally equipped to identify clusters of vertices within a neighborhood, something which can be useful for interface prediction, where local regions of residues may constitute portions of an interface.
 Though the number of possible convolution operations on simplicial complexes are many, one example is provided here for the purpose of discussion. 
 In this formulation, rather than sum the signal from all neighbors in the receptive field, each simplex $S_k, k \in \{1, 2,... K\}$ (not counting vertices and edges, which are the lowest order simplexes) in the neighborhood is summed individually and the maximum simplex signal is added to the central signal:
 
 \begin{equation}
 \begin{split}
 h_i(x |  & W^{\textsc{c}}, W^{\textsc{n}}, W^{\textsc{e1}}, W^{\textsc{e2}}, b) = \\ 
-&\sigma \bigg( W^{\textsc{c}} x_i + \max_{k} \Big[ \frac{1}{|\mathcal{S}_k|}  \sum_{j \in \mathcal{S}_k} ( W^{\textsc{n}} x_j + W^{\textsc{e1}} A_{ij} ) + \frac{1}{|\mathcal{S}_k|^{2}}\sum_{j, l \in \mathcal{S}_k} (W^{\textsc{e2}} A_{jl}) \Big] + b \bigg).
+&\sigma \bigg( W^{\textsc{c}} x_i + \max_{k} \Big[ \frac{1}{|S_k|}  \sum_{j \in \mathcal{S}_k} ( W^{\textsc{n}} x_j + W^{\textsc{e1}} A_{ij} ) + \frac{1}{|S_k|^{2}}\sum_{j, l \in \mathcal{S}_k} (W^{\textsc{e2}} A_{jl}) \Big] + b \bigg).
 \end{split}
 \label{eq:simplicial_complex_conv}
 \end{equation}
@@ -170,19 +164,20 @@ The use of simplicial complexes in defining convolution operations is currently 
 
 \section{Extensions of Application}
 
-Interface prediction is not the only active area of protein research, and so the modeling of proteins and graphs and use of graph convolution could potentially be used for other protein problems as well.
+Interface prediction is not the only active area of protein research, and so the modeling of proteins as graphs and use of graph convolution could potentially be used for other protein problems as well.
 A common characteristic of docking methods is that they create a high number of putative 3D bound structures~\cite{janin2013}.
-The same pairwise neural network architecture used in this thesis could also be used to evaluate putative docking solutions and rank them in order of likelihood.
+Graph convolutional neural networks could also be used to evaluate putative docking solutions and rank them in order of likelihood.
 For example, the interface derived from a docking solution could be compared to the interface predicted by a trained pairwise graph convolutional neural network and ranked according to similarity with the network prediction.
 Similarly, much research has been performed in protein modeling, which seeks to predict a protein's secondary and tertiary structures from sequence alone~\cite{schwede2013}.
 Though graph convolutions cannot be used to create protein folds \emph{de novo}, they can be used to evaluate a set of putative folds and likewise rank them.
 In both of these applications, regression is being performed not at the individual vertex level, but at the graph level.
-These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud and Maclaurin, et al (2015)~\cite{duvenaud2015}.
+These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud \& Maclaurin, et al.~\cite{duvenaud2015}.
 
 Any application involving structured data that do not fit naturally into a grid is a potential candidate for graph convolutional approaches.
 Aside from proteins, other biological and chemical data often meet this criterion.
 In particular, Quantitative Structure-Activity Relationship (QSAR) and Quantitative Structure-Property Relationship (QSPR) both attempt to predict chemical behavior and properties of proposed chemical structures in order to identify structures with certain desired properties. 
 Identified structures become candidates for laboratory synthesis and experimentation, a much more laborious and time consuming process. 
+This is the focus of the Fingerprint convolution from Duvenaud \& Maclaurin et al.~\cite{duvenaud2015}.
 Studies in QSAR and QSPR have long been considered "unquestionably of great importance in modern chemistry and biochemistry"~\cite{karelson1996}.
 Like proteins, chemical structures can be modeled as a graph and used to train graph convolutional networks to predict the properties of interest.
 This is made possible by the vast and growing databases of chemical structures and their corresponding structures~\cite{olah2008, judson2008}.

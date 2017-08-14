@@ -123,7 +123,7 @@ Unlike other convolutions presented here, this method does not use a receptive f
 
 \subsection{Ordered Method}
 
-Niepert, Ahmed, \& Kutzkov~\cite{niepert2016} describe an ordered graph convolution that is used in their tool, \emph{PATCHY-SAN}, which performs classification at the graph level.
+Niepert, Ahmed, \& Kutzkov~\cite{niepert2016} describe an ordered graph convolution, \emph{PATCHY-SAN}, which performs classification at the graph level.
 This methods constructs local neighborhoods orders neighboring vertices according to a \emph{normalization} procedure.
 The ordered vertices serve as the receptive field for convolution at the central vertex, which is also in the ordering. 
 If $(x_1, x_2, ... , x_k)$ is the ordered list of vertices, then convolution takes the form:
@@ -238,11 +238,13 @@ h(x_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{
 where $\odot$ denotes the elementwise product between two vectors or matrices. 
 This allows a neighbor's influence on the overall activation to be modulated by its relationship to the central vertex.
 For protein graphs, this means neighboring residues will contribute more or less to the overall activation, depending on their distance from and relative orientation to the central vertex, with the precise modulation determined by the edge activations.
-Note the similarity to Equation (\ref{eq:deep_tensor}).
 
-Just as convolution on a regular grid can be applied at any pixel in an image, graph convolution can be applied to any vertex in the graph.
-Hence both can be considered translation invariant.
-Both Sum Coupling and Product Coupling graph convolution are translation invariant, don't impose an ordering on the neighbors or a correspondence between receptive fields, allow for different numbers of neighbors, and account for the different relationships between neighbors and the central vertex. 
+In relation to prior methods, Sum Coupling is most similar to Fingerprint and R-GCN convolutions.
+Unlike Fingerprint convolutions, it uses separate weights for central and neighbor vertices.
+Unlike R-GCN convolutions, it does not uses basis functions which tie together all weight matrices.
+Also, Fingerprint and R-GCN convolutions do not generate signals from the edges.
+Product Coupling is similar to DTNN convolutions in the way vertex and edge information is coupled together, but unlike DTNN it calculates a signal for the central vertex and allows the number of channels/features to change layer by layer. 
+
 The receptive fields are always defined around a central vertex, so the results of convolution can be applied to that vertex.
 This retains the graph structure after each convolution, so convolutional layers are stackable, as with images.
 
@@ -253,9 +255,8 @@ For incomplete graphs, a receptive field can be defined as all vertices within $
 If $k=1$, both versions of graph convolution can directly be applied.
 If $k>1$, then Product Coupling graph convolution can't be directly applied to neighbors more than 1 hop away from the center vertex, since they share no edge with the center. 
 Though there are ways to adapt Product Coupling graph convolution in this situation, they are not the focus of this thesis.
-%TODO: say more?
 
-Lastly, to assess the benefit that incorporating information from neighboring residues has on classification performance, the \emph{no convolution} variant is defined as:
+Lastly, to assess the benefit that incorporating information from neighboring residues has on classification performance, the \emph{No Convolution} variant is defined as:
 
 \begin{equation}
 h(x_i | W^\textsc{c}, b)= \sigma \bigg( W^{\textsc{c}} x_i + b \bigg),
@@ -278,7 +279,6 @@ The merge layer then combines the vertex representations from one graph with the
 To maintain symmetry, this merge process should also be symmetric.
 For example, the elementwise sum, elementwise product, and outer-product are all commutative and therefore produce symmetric output.
 Another option is to combine pairs asymmetrically, such as concatenating the two representations together, but then average the predictions from each ordering of the representations.
-%TODO: talk about pairwise kernels?
 Finally, the combined representation for each pair of residues is passed through a number of fully connected layers.
 The data are represented as pairs of residues at this point. 
 Theoretically, graph convolution could be performed at this stage as well, this time in the product graph.

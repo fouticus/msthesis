@@ -132,7 +132,7 @@ f(x) = e^{-x^2 / \sigma^2},
 where sigma is chosen by model selection, so that this feature has a higher value for residues that are closer together.
 
 
-\subsection{$\text{C C}_{\alpha} \text{O}$ Angle}
+\subsection{$\text{CC}_{\alpha} \text{O}$ Angle}
 \noindent
 \emph{Number of features}: 1
 
@@ -157,3 +157,11 @@ The angle between residues $i$ and $j$ is then:
 
 \noindent
 Finally, the angle is normalized to be between 0 and 1 by dividing by $2 \pi$. 
+
+
+
+\section{Missing Data}
+In Section \ref{sect:missing_data} it was noted that 13 residues were not provided with an $\alpha$-carbon in the corresponding PDB file. 
+These residues were determined to be partial records at the end of a protein chain, where only a single atom was listed.
+This made calculation of Half Sphere Amino Acid Composition, Residue Depth, and $\text{CC}_{\alpha} \text{O}$ Angle impossible.
+Upon inspection, these partial records were deemed to be legitimate residues and so were retained, with the missing features imputed according to the procedure described in Chapter \ref{chap:experiments}.

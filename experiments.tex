@@ -45,11 +45,14 @@ Hence unbound PDB files were used to generate a graph representation of each pro
 Features were then computed for each vertex and edge using sequence and structure information from the protein.
 Vertex features pertain to the degree of residue conservation, accessible surface area, depth within the protein, and protrusion.
 Edge features capture the distance between two residues and their relative orientation as well.
+Raw distances are passed through a Gaussian function centered at zero with a standard deviation chosen during model selection.
 More detail on each feature can be found in Appendix \ref{appendix:features}.
 
 \subsection{Handling Missing Data}
+\label{sect:missing_data}
+
 In some cases, features could not be calculated for a residue, resulting in missing values.
-For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features see Appendix \ref{appendix:features} for more detail} angle could not be calculated.
+For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features could not be calculated (see Appendix \ref{appendix:features} for more detail).
 Most features rely on third party software to calculate the features from the PDB data.
 For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to an unknown third party software fault.
 These complexes were omitted during model selection but re-introduced with imputed values before testing.
@@ -84,41 +87,46 @@ Therefore automated approaches were abandoned in favor of a manual search.
 Several hyper-parameters were explored manually by training/validating networks under different settings of the hyper-parameters.
 This exploration occurred in a one-hyper-parameter-at-a-time fashion, alleviating the search space problem encountered with the automated algorithms, but also limiting the ability to explore interactions between different hyper-parameters.
 In some cases, the choice of hyperparameter affected training time and model convergence rate, but had little impact on overall model performance (e.g. the nonlinear activation function, training algorithm, the number of convolutional filters).
-In other cases, few values had to be searched before a local optimum was found (e.g. the number of dense layers after merging, minibatch size, optimization strategy, the gaussian parameter for residue distances).
+In other cases, few values had to be searched before a local optimum was found (e.g. the number of dense layers after merging, minibatch size, optimization strategy, residue distance Gaussian function standard deviation).
 Because this manual optimization was iterative, it is impossible to summarize how each alernative  choice of hyperparameter would change the results from the set of hyperparameters ultimately chosen.
 However, some trends were observed consistently throughout testing and are worth describing in more detail.
 This is done below.
 
 As the name implies, deep networks typically perform best with more than one layer. 
-This is indeed the case for pairwise graph convolutional networks, although the benefit begins to diminish beyond 4 layers.
+This is indeed the case for pairwise graph convolutional networks, although the benefit began to diminish beyond 4 layers.
 To illustrate this trend, multiple depths were used during the testing phase.
 Typically convolutional neural networks begin with a small receptive field size which grows in successive convolutional layers.
-In this case, networks performed better if all layers had the same relatively large receptive field, around 21. 
-For comparison, the smallest protein in the data set had 29 residues, so for that protein the receptive field was more than two thirds of the entire protein graph. 
+For this problem, networks performed better if all layers had the same relatively large receptive field, around 21. 
+Significantly larger receptive fields would begin to encompass entire proteins, since the smallest protein in the data set has 29 residues.
 During testing, receptive field sizes of 11 and 21 were used to enable comparison.
-For image convolutions, it is not uncommon for the number of filters in the first convolutional layer to be roughly an order of magnitude more than the number of input channels, and to increase in subsequent layers.
+For image convolution, it is not uncommon for the number of filters in the first convolutional layer to be roughly an order of magnitude more than the number of input channels, and to increase in subsequent layers.
 In contrast to images which may have only 1 or 3 channels, protein graphs have 70 features for each vertex, so an analogous increase in the number of filters would quickly exceed the memory resources of a GPU.
-Nevertheless, a larger number of filters proved beneficial, so all graph convolutions started with 256 filters and increased to a size of 512 in the last convolution layer (if the network had more than one).
+Nevertheless, a larger number of filters proved beneficial, so all graph convolutions started with 256 filters and increased to a size of 512 in the last convolutional layer (if the network had more than one).
 
 
 Most model selection was performed on the novel graph convolutions and the "no convolution" case.
-Because most of the the other convolution methods are not appreciably different, an abridged model selection process was performed for them, simply to check whether the same hyperparameters could reasonably be used. 
-The exceptional case was DCNN, where the gaussian parameter for residue distances was observed to have a significant impact on model performance. 
+Because most of the the other convolution methods are not appreciably different, an abridged model selection process was performed for them, simply to check whether the same hyperparameters could reasonably be used.
+The exceptional case was DCNN, where the Gaussian standard deviation for residue distances was observed to have a significant impact on model performance. 
 For this method, rather than using a value of $\sigma = 18\AA{}$, much smaller values of $2\AA{}$ and $4\AA{}$ were chosen for the testing phase.
 Given that the diffusion is occurring on a complete graph, the smaller values allow only local information to propagate during each hop.
 The other graph convolutional methods do not have this same problem, since they are restricted to a fixed size receptive field. 
 Diffusion convolutions do not downsample the input, so it is possible to stack multiple convolutions on top of one another.
-However, additional diffusion convolution layers did not improve performance, so only results from a single layer were tested.
+However, additional diffusion convolutional layers did not improve performance, so only results from a single layer were tested.
 
 \subsection{Model Testing Setup}
 
-Final model testing was performed for all variants of convolution and the "no convolution" case.
+Final model testing was performed for all variants of convolution and the No Convolution case.
 For each variant, receptive field sizes of 11 and 21 were tested (the central vertex plus 10 or 20 neighbors, respectively), with one, two, three, and four graph convolutional layers. 
-In total, 16 conditions were tested, except Diffusion convolution as already noted.
+In total, 16 combinations were tested, except DDCNN as already noted.
 All variants followed the same training scheme:
 The number of filters for networks with one convolutional layer was 256, Likewise for two, three, and four convolutional layers the number of filters was (256, 512), (256, 256, 512), and (256, 256, 512, 512) respectively.
 For DTNN, the number of filters necessarily matched the number of input features, 70.
 After merging examples via concatenation, dense layers of 256 and 1 units were applied, with the latter producing the model output.
+Except for the last layer, rectified linear units (ReLU) as the nonlinear activation function, except for DTNN for reasons explained below.
+Note that activation functions are being applied to each neighbor individually in Equation (\ref{eq:deep_tensor}), which is different from the other methods.
+Since ReLU is non-negative, it would force the layer output to be greater or equal to the input.
+Therefore, tanh is used instead to allow for both positive and negative adjustments.
+
 Loss was computed using weighted cross entropy, a measure of the dissimilarity between two probability distributions.
 Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
 
@@ -146,30 +154,28 @@ Stochastic gradient descent was performed with a learning rate of 0.1, mini-batc
 Dropout with probability $p=0.5$ was performed during training.
 
 The networks were implemented in TensorFlow~\cite{abadi2015} v1.0.1 and trained using a single NVIDIA GTX 980 or GTX TITAN X GPU.
-Training time varied from \hl{9 to 46} minutes, depending on convolution method, network size, GPU card, and computer resource availability.
+Training time varied from roughly 7 to 220 minutes depending on convolution method, implementation, network size, GPU card, and computer resource availability.
+Most methods took less than 60 minutes, with the exceptions being 4 layer PATCHY-SAN networks and R-GCNs that include basis functions.
 
 
 The graph convolution variants were compared to PAIRpred, an existing state-of-the-art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al.~\cite{minhas2014}.
-The original PAIRpred publication used different complexes, slightly different features, and a different experimental protocol, so it was run with the same features and data that were used in this work for the purpose of comparison.
+PAIRpred was run with the same features and data that were used in this work for the purpose of comparison.
 Grid search with five-fold cross validation was used to select the optimal kernel and soft margin parameters.
 
 
 
 \section{Metrics}
 
-Biologists can often learn a lot of useful information from just a few pairs that are known to be a part of the interface. \hl{cite?}
-In the partner specific problem, even this task is difficult, since the number of negative pairs far outweighs the number of positive pairs.
-An imperfect classifier may succeed in giving high scores to interface pairs but also to some non-interface pairs as well.
-The more assured a researcher can be that top scoring pairs are from the interface, the more useful is the classifier.
-
 While measures like accuracy, precision, recall, specificity, and F-score are common for many classification problems, they are dependent on the choice of a particular classification threshold.
 A metric more appropriate for interface prediction would be the area under the receiver operating characteristic curve (AUC), because it does not rely on a particular choice of threshold.
 Instead, it summarizes the true positive rate across all false positive rates, indicating threshold independent performance of the classifier.
 
-In addition, such an extreme class imbalance can imply that AUC is misleading, since the movement of a single positive example can heavily influence the true positive rate compared to the effect that a single negative example has on the false positive rate.
-An alternative measure which more directly captures the usefulness of classifiers is the rank of the first positive prediction (RFPP), where the rank is computed after ordering pairs by classifier score.
+In addition, in the case of an extreme class imbalance, the AUC is misleading, since the movement of a single positive example can heavily influence the true positive rate compared to the effect that a single negative example has on the false positive rate.
+Even with a high AUC, a classifier may rank a number of negative examples above the first positive examples, when ranking by predicted likelihood of being part of the interface.
+In this case, it is also useful to measure how far down the ranked scores one has to go before encountering a true positive.
+A metric which captures this directly is the rank of the first positive prediction (RFPP), where the rank is computed after ordering pairs by classifier score.
 Ideally, the top ranking prediction is truly part of the interface, in which case RFPP is 1.
 
 Interface prediction occurs at the complex level, so AUC and RFPP should be calculated with respect to each complex. 
 The performance of a classifier on a set of complexes can then be summarized using median AUC and RFPP across the complexes.
-These metrics closely mimic those used in the PAIRpred paper~\cite{minhas2014}, except that AUC is being calculated individually for each complex instead of overall.
+These metrics closely mimic those used in the PAIRpred paper~\cite{minhas2014}, except that median AUC is taken instead of average.
