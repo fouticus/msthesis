@@ -143,16 +143,47 @@ All Rights reserved
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \abstract{%
-Abstract goes here.
+Proteins play a critical role in processes both within and between cells through their interactions with each other and other molecules.
+Proteins interact via an \emph{interface} forming a complex, which is difficult, expensive, and time consuming to determine experimentally, giving rise to computational approaches.
+These computational approaches utilize known electrochemical properties of protein amino acid residues in order to predict if they are a part of an interface or not.
+Prediction can occur in a partner independent fashion, where amino acid residues are considered independtly of their putative neighbor, or in a partner specific fashion, where pairs of potentially interacting residues are considered together.
+Ultimately, prediction of protein interfaces can aide in illuminate cellular biology, improve our understanding of diseases, and aide pharmaceutical research.
+Interface prediciton has historically been performed with a variety of methods, to include docking, scoring functions, template matching, and more recently, machine learning approaches.
+
+The field of machine learning has undergone a revolution of sorts with the emergence of \emph{convolutional neural networks} as the leading method of choice for a wide swath of tasks.
+Enabled by massive quantities of data and the increasing power and availability of computing resources, convolutional neural networks efficiently detect patterns in grid structured data and generate hierarchical representations that prove useful for many types of problems.
+This success has motivated the work presented in this thesis, which seeks to improve upon state of the art interface prediction methods by incorporating concepts from convolutional neural networks.
+
+Proteins are inherently irregular, so they don't easily conform to a grid structure, whereas a graph representation is much more natural.
+Various convolution operations have been proposed for graph data, each geared towards a particular application.
+We adapt these convolutions and propose two new variants, and perform partner specific prediction by training on the Docking Benchmark Dataset version 4.0 complexes and testing on the new complexes added in version 5.0.
+We also compare against the state of the art method partner specific method, PAIRpred~\cite{minhas2014}.
+Results show that multiple variants of graph convolution outperform PAIRpred, with no method emerging as the clear winner.
+
+In the future, additional training data may be incorporated from other sources, unsupervised pretraining such as autoencoding may be employed, and a generalization of convolution to simplicial complexes may also be explored.
+In addition, the various graph convolution approaches may be applied to other applications with graph structured data, such as Quantitative Structure Activity Relationship (QSAR) learning, and knowledge base inference.
+
 }
 
 % Acknowledgments 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \acknowledgements{%
-Acknowledgements go here.
+I would like to firstly acknowledge and thank my Creator and Savior Jesus Christ, who continues to bless me with new challenges and show me the wonder of His creation.
+Thank you to my parents for their unconditional love and support that has manifested itself in so many practical ways, and to Kris, Katherine, Steve, Quinn, and members of my extended family for their support and understanding as I've worked towards completion of my degree.
+My immense grattitude goes to my advisor, Dr. Asa Ben-Hur for his patience, calm guidance, and encouragement to maintain a healthy life balance in graduate school of all places.
+I thank the members of my committee for lending their expertise to provide feedback and insight on the work presented in this thesis, to include Chuck Anderson, Hamid Reza Chitsaz, and Wen Zhou.
+I must thank my fellow interface predictors, Basir Shariat and Jonathon Byrd, who very much compensated for my shortcomings in numerous ways, and who bravely held me back from the precipice of software engineering.
+We make a good team!
+I appreciate all of the support and feedback from the other members of Asa's research group, to include (alphabetically) Gareth Halladay, Mike Hamilton, Don Neumann, Swapnil Sneham, and Fahad Ullah.
 
-Molecular graphics and analyses were performed with the UCSF Chimera package. Chimera is developed by the Resource for Biocomputing, Visualization, and Informatics at the University of California, San Francisco (supported by NIGMS P41-GM103311)
+
+Some molecular graphics and analyses were performed with the UCSF Chimera package. Chimera is developed by the Resource for Biocomputing, Visualization, and Informatics at the University of California, San Francisco (supported by NIGMS P41-GM103311).
+
+
+\vfill
+\noindent
+Soli Deo Gloria
 }
 
 % Metadata
@@ -218,7 +249,7 @@ Molecular graphics and analyses were performed with the UCSF Chimera package. Ch
 
 \input{features.tex}
 
-\input{tools.tex}
+\input{implementation.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
