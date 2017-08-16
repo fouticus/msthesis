@@ -2,7 +2,7 @@
 \label{chap:results}
 
 
-Then first explores the behavior of Sum and Product Coupling.
+This chapter first explores the behavior of Sum and Product Coupling.
 Then it compares to PAIRpred and the other variants of graph convolution.
 Some convolution filters are then visualized, along with network output for one trained network.
 Finally, it summarizes the effect of protein size on network training time.
@@ -37,11 +37,11 @@ It's also clear that a receptive field of size 21 is generally better than 11.
 Interestingly, this value is near the median number of interface residues for a single protein, which is 27.
 When using convolution, performance improves with network depth up to a point, then either decreases or remains relatively constant.
 In Sum Coupling, this maximum occurs in the second layer, whereas in Product Coupling, this maximum occurs in the fourth layer.
-Though not shown in the table, Sum Coupling indeed fails to improve when using 5 or 6 layers.
+Though not shown in the table, Product Coupling indeed fails to improve when using 5 or 6 layers.
 In contrast, networks without convolution are best with only one pre-merge layer.
 This suggests that depth alone does not improve performance, but when convolution is performed, a useful hierarchical representation is learned.
 Other applications of deep learning have seen this same trend of increasing and decreasing performance.
-The commonly given explanations for such behavior include insufficient training data, a vanishing gradient, and a problem which is difficult to optimize~\cite{he2015}.
+The commonly given explanations for such behavior include insufficient training data, a vanishing gradient, and a difficulty with optimization~\cite{he2015}.
 Overall, both Sum and Product Coupling achieved similar performance in AUC.
 
 \begin{table}
@@ -59,7 +59,7 @@ Overall, both Sum and Product Coupling achieved similar performance in AUC.
 			& 21 & 26 & \textbf{25} & 36 & 37 \\
 			\bottomrule
 		\end{tabular}
-		\caption{Median rank of the first positive prediction (RFPP) across all complexes in the test set for two variants of graph convolutional networks, Sum Coupling and Product Coupling. Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method (lower is better).}
+		\caption{Median rank of the first positive prediction (RFPP) across all complexes in the test set for two variants of graph convolution, Sum Coupling and Product Coupling, as well as No Convolution. Results are shown for two different sizes of receptive field, 11 and 21, for different numbers of convolutional layers before the pairwise merge operation. Bold faced values indicate best performance for each method (lower is better).}
 		\label{tab:med_rfpp}
 	\end{center}
 \end{table}
@@ -68,7 +68,7 @@ Table \ref{tab:med_rfpp} parallels Table \ref{tab:med_auc} but shows RFPP instea
 As before, Sum and Product Coupling perform similarly to each other, and both outperform No Convolution.
 In this case, however, the best performance for Sum and Product Coupling is seen for fewer layers than AUC.
 This difference is not surprising, considering the cross-entropy loss function leads to optimization of performance on \emph{all} pairs, not just the top scoring ones.
-In other words, RFPP is not being explicitly optimized in this example, whereas AUC is more closely related to the quantity being optimized.
+In other words, RFPP is not being explicitly optimized in this problem, whereas AUC is more closely related to the quantity being optimized.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{med_auc.png}
@@ -93,6 +93,7 @@ Surprisingly, there is no clear divide between rigid, medium difficulty, and dif
 In fact, the worst AUC is a rigid complex, and one difficult complex achieves AUC above 0.9.
 It appears that the distinguishing characteristic between classes is the number of complexes that achieve above 0.95 AUC.
 These "trivial" complexes are most frequent in the rigid class, less so in the medium difficulty class, and absent for the difficult class.
+This suggests that the networks are effectively coping with some complexes that under conformational change.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{med_rfpp.png}
@@ -165,39 +166,40 @@ Therefore an ensemble approach with varying depths may perform well on complexes
 
 Table \ref{tab:results_compare} compares the median AUC of the various existing methods discussed.
 PAIRpred, the state of the art pairwise interface predictor, establishes the baseline.
-Interestingly, most of the graph convolution based methods exceed the baseline.
+Interestingly, most of the graph convolution based methods exceed this.
 DCNN is the exception, showing worse performance than PAIRpred.
-This is perhaps unsurprising, since it differs considerably from the other convolution methods, which all are very similar to one another.
+This is perhaps unsurprising, since it differs considerably from the other convolution methods, which are very similar to one another.
 
-The order imposing PATCHY-SAN performs quite well, suggesting that the chosen ordering of neighbors by proximity to the central vertex was a natural one.
+The order imposing PATCHY-SAN performs quite well, suggesting that the chosen ordering of neighbors by proximity to the central vertex was a good one.
 Its best AUC of 0.897 is within one standard deviation (0.006) of the best overall performance, which was 0.903 from Sum Coupling.
-Therefore it is difficult to say whether order free or ordered methods perform better for this problem.
+Therefore it is difficult to say whether order-free or ordered methods perform better for this problem.
 Only one ordered method was examined, leaving the possibility that others may do better.
-Because of the unique weights used for each neighbor, ordered methods have significantly more parameters than order free methods, making them more susceptible to overfitting, though that is not observed in these results.
+Because of the unique weights used for each neighbor, ordered methods have significantly more parameters than order-free methods, making them more susceptible to overfitting, though that is not observed in these results.
 This method also uses information from all edges in the receptive field, whereas the other methods are only concerned with edges connecting neighbors to the central vertex.
 
-R-GCN, did the best without basis functions.
-The original intent for basis functions was to allow for weight sharing across several relation types.
-This is less relevant for these protein graphs since only a single neighborhood is being considered per central vertex. 
-When using basis functions, larger networks (starting at three layers) appeared to drop significantly in performance compared to other methods.
-At four layers, networks consistently classified all residue pairs with the same exact score, suggesting all filters had become "dead" (zero valued).
+R-GCN did the best without basis matricess.
+The original intent for basis matricess was to allow for weight sharing across several relation types.
+This is less relevant for these protein graphs since only a single neighborhood is being considered per central vertex, so in a sense there is only one relation type.
+When using basis matricess, larger networks (starting at three layers) drop significantly in performance compared to other methods.
+At four layers, networks consistently classified all residue pairs with the same score, suggesting all filters had become zero valued (note that AUC cannot be calculated with all scores are identical).
 Note that AUC cannot be calculated when all scores are identical.
 This is possible when using ReLU nonlinearities, since the output and gradient vanishes for signals less than zero.
 It's possible that a different initialization scheme or a different nonlinearity would remedy this problem.
-Regardless, the use of basis functions in this context is somewhat unjustified because these graphs lack the numerous relation types that prompted use of bias functions in the first place~s\cite{schlichtkrull2017}.
-Nevertheless, the two layer, five basis function version performed similarly to the best results observed, so exploring greater numbers of basis functions seems merited.
-Without basis functions, R-GCN is equivalent to Sum Coupling if edge information is excluded.
-Moreover, the fact that R-GCN without basis functions performs similarly to Sum Coupling suggests that the added edge information in Sum Coupling is not very useful.
+Regardless, the use of basis matricess in this context is somewhat unjustified because these graphs lack the numerous relation types that prompted use of basis matricess in the first place~\cite{schlichtkrull2017}.
+Nevertheless, the two layer, five basis matrices version performed similarly to the best results observed.
+But testing with 8 basis matrices did not show improvement.
+Without basis matricess, R-GCN is equivalent to Sum Coupling if edge information is excluded.
+The fact that R-GCN without basis matricess performs similarly to Sum Coupling suggests that the added edge information in Sum Coupling is not very useful.
 
 Fingerprint is arguably the simplest form of graph convolution since it uses the same weight matrix for both central and neighbor vertices.
 Its best performance is only 0.01 below that of R-GCN, but it requires twice as many layers.
-Increasing the number of layers to five or six exhibits no substantive improvement. 
+The number of layers to five or six exhibits no substantive improvement. 
 
 Whereas PATCHY-SAN, Fingerprint, and R-GCN are most similar to Sum Coupling, DTNN allows for a multiplicative coupling between neighbors and edges, similar to Product Coupling.
 Like Product Coupling, best performance is achieved at a greater depth than the other methods, but does not continue to improve for five or six layers. 
 This method is notably worse than the three just mentioned.
 One potentially limiting aspect of this method is that the number of channels is necessarily unchanged.
-This may explain why this method performs worse than Product Coupling at its best.
+This may explain why this method performs worse than Product Coupling.
 
 
 For DCNN, five hops performs better than two hops, presumably for the same reason that a larger receptive field is better in the other convolution methods: information is able to propagate further across the graph.
@@ -212,8 +214,8 @@ In contrast, the five hop DCNN performed better for $\sigma=2\AA{}$, suggesting 
 
 \section{Filter Visualization}
 
-It is often difficult to understand the behavior of a model by looking only at the overall performance. 
-For convolutional neural networks on images, intuition can be gained through a variety of methods, including visualization filters directly, tracking a filter's activation as different regions of the image are occluded, and identifying which images maximally activate each filter. 
+It is often difficult to understand the behavior of a model by simply looking at the overall performance. 
+For convolutional neural networks on images, intuition can be gained through a variety of methods, including visualizing filters directly, tracking a filter's activation as different regions of the image are occluded, and identifying which images maximally activate each filter. 
 To understand the filters being learned in this pairwise neural network architecture, network scores and filter activations were mapped to a protein complex heatmap.
 Figure \ref{fig:filter_vis} presents color maps on the complex 3HI6 which depict the true interface, maximum predicted scores for each residue, and the activation of two filters from last convolutional layer, for the best performing method (Sum Coupling with two layers and receptive field size of 21).
 Scores are partner specific, so they are shown for a single residue after taking the maximum over all potential partners.

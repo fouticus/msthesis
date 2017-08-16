@@ -6,7 +6,7 @@
 %In silico prediction of interfaces began in the 
 
 As previously mentioned, the experimental determination of protein complexes is time and resource intensive, prompting computational modeling approaches.
-Esmaielbeiki, Krawczyk, Knapp, Nebel, \& Deane ~\cite{esmaielbeiki2015} describe three slightly different computational problems: protein interaction prediction, protein interface prediction, and protein-protein docking~\cite{esmaielbeiki2015}.
+Esmaielbeiki, Krawczyk, Knapp, Nebel, \& Deane ~\cite{esmaielbeiki2015} describe three slightly different computational problems: protein interaction prediction, protein interface prediction, and protein-protein docking.
 The first problem seeks to identify pairs of proteins which interact, elucidating the complicated protein interaction networks that give rise to cellular processes. 
 The second problem, and the focus of this thesis, is concerned with identifying the specific residues or pairs of residues which make up the interface.
 The third problem considers two specified proteins and seeks the bound 3D structure of their complex.
@@ -17,10 +17,10 @@ Docking begins with the known unbound structures of two proteins known to intera
 During search, the proteins are translated and rotated relative to each other and brought into contact to create a several putative 3D bound structures for the complex.
 The putative structures are then evaluated by a scoring function to identify the most likely conformation of the complex.
 Different docking methods differ in their the search algorithms and scoring functions.
-Scoring functions may incorporate complementarity in geometry, chemistry, and electrostatics, or incorporate van der Walls forces or evidence based (aka statistical) potentials~\cite{tuncbag2011}\cite{janin1995}.
+Scoring functions may incorporate complementarity in geometry, chemistry, and electrostatics, or incorporate van der Walls forces or evidence based (i.e. statistical) potentials~\cite{tuncbag2011}\cite{janin1995}.
 It is worth noting that docking methods can also be used to predict interfaces, by first solving for the 3D structure of the complex and then extracting the interface from the complex.
 Indeed, docking methods were some of the earliest computational approaches developed for modeling protein interactions~\cite{janin1995}.
-One of the major advantages of docking is its ability to produce interface predictions \textit{ab initio} without having examples of known interfaces, which is particularly useful when experimental complex data are sparse.
+One of the major advantages of docking is its ability to produce interface predictions \emph{ab initio} without requiring examples of known interfaces, which is particularly useful when experimental complex data are sparse or absent.
 Unfortunately, docking methods traditionally suffer from relatively high false positive rates, are considerably less effective for complexes which undergo conformational change when binding than those that do not, and are computationally expensive because of the vast search space~\cite{janin1995}\cite{tuncbag2011}.
 
 \section{Other Early Methods}
@@ -58,7 +58,7 @@ Similarity may be measured via sequence or structural similarity~\cite{esmaielbe
 Other data-driven methods have appeared which are based on either machine learning or statistical methods.
 Some early machine learning based approaches used a support vector machine (SVM) to classify residues as either belonging to an interface or not.
 %TODO: explain SVMs?
-An SVM essentially provides a scoring function which is dependent on training data rather than manually constructed.
+An SVM essentially provides a scoring function which is dependent on training data rather than being manually constructed.
 Koike \& Takagi~\cite{koike2004} trained an SVM classifier to perform partner-independent prediction of interfaces.
 They represented a residue by its profile, a vector of relative abundances of each amino acid type among homologous proteins at that location.
 They experimented with different feature representations to make predictions at a particular residue, finding that incorporating profiles from sequential or spatially neighboring residues improves performance, as does incorporating accessible surface area and accounting for the relative interface size.
@@ -96,7 +96,7 @@ Both the feature representations and the sequence windows are in keeping with pr
 Residues whose windows extended past the end of the bounds of the sequence were excluded from the training set.
 
 The data used are from version 3.0 of the Docking Benchmark Dataset~\cite{hwang2008}, which includes 124 unbound and bound structures of both proteins.
-A pair of residues, one from each protein is considered positive (part of the interface) if they are within 6\AA~of each other and negative otherwise.
+A pair of residues, one from each protein was considered positive (part of the interface) if they are within 6\AA~of each other and negative otherwise.
 Training examples were created by concatenating the feature representation of each residue in a pair together.
 Due to the inherent asymmetry of this concatenation, two examples were produced for each pair by concatenating the representations in both orders (AB and BA).
 Predictions for pairs were made by taking the average prediction of the two orderings.
@@ -112,14 +112,14 @@ The ensemble achieved an AUC of 72.9\% compared to 67.9\% for a single neural ne
 The authors compared this to an analogously constructed neural network ensemble which performs partner-independent prediction.
 Examples consist of a single residue which is positive if it is part of an interface and negative otherwise.
 Partner independent predictions were naively converted to partner-specific predictions by averaging the scores of each residue in the pair, yielding an AUC of 71.0\%, worse than the partner-specific predictor.
-Conversely, partner-specific predictions can also be converted to partner-independent predictions by taking the max over all potential neighbors. 
+Conversely, partner-specific predictions were converted to partner-independent predictions by taking the max over all potential neighbors. 
 This yielded an AUC of 66.1\% for the partner-independent prediction problem, better than the 63.8\% AUC of the partner-independent model.
 Thus, the partner-specific model outperformed the partner-independent model on both partner-specific and partner-independent predictions.
 
-In PAIRPred, Minhas, Geiss, \& Ben-Hur~\cite{minhas2014} incorporated custom symmetric symmetric kernels into an SVM formulation~\cite{minhas2014}.
+In PAIRPred, Minhas, Geiss, \& Ben-Hur~\cite{minhas2014} incorporated custom symmetric kernels into an SVM formulation~\cite{minhas2014}.
 In addition, this method includes structural information for each residue as well.
-The structure based features consist of the relative accessible surface area (rASA), residue depth, half sphere amino acid composition, and protrusion index.
-The sequence based features include the same PSSM encoding as PPiPP, a position frequency scoring matrix (PSFM) encoding (like the PSSM encoding but with raw frequencies instead of log-odd frequencies), and predicted rASA (prASA).
+The structure based features consisted of the relative accessible surface area (rASA), residue depth, half sphere amino acid composition, and protrusion index.
+The sequence based features included the same PSSM encoding as PPiPP, a position frequency scoring matrix (PSFM) encoding (like the PSSM encoding but with raw frequencies instead of log-odd frequencies), and predicted rASA (prASA).
 
 The authors used complexes from DBD version 3.0~\cite{hwang2008} for comparison to PPiPP.
 They also utilized the updated DBD version 4.0~\cite{hwang2010}, which is a superset of the complexes in version 3.0, and complexes from the CAPRI~\cite{janin2013} experiment.
@@ -129,19 +129,19 @@ Each pairwise kernel is constructed by taking a symmetric combination of kernels
 %TODO: explain this better and write out some math?
 Several individual pairwise kernels are summed and the result is normalized to produce the final pairwise kernel.
 The authors also investigated a postprocessing step where pair scores are smoothed based on the scores in a neighborhood around each residue.
-Cross validation was used to tune the soft margin parameter \textit{C} and the residue kernels and pairwise kernels were optimized in similar fashion. 
-Following the same leave-one-out procedure as Ahmad \& Mizuguchi, PAIRPred achieved an AUC of 87.3~\% before any postprocessing, and 88.7~\% after post processing.
-When using only sequence based features, PAIRPred achieved an AUC of 80.9~\%, which demonstrates a significant improvement over PPiPP even in the absence of structural features.
-Partner-independent prediction was performed by taking the maximum score across all potential neighbors, and achieved an AUC of 70.8~\% and 77.0~\% using only sequence features and all features respectively, which also outperforms PPiPP's best partner-independent performance.
+Cross validation was used to tune the soft margin parameter C and the residue kernels and pairwise kernels were optimized in similar fashion. 
+Following the same leave-one-out procedure as Ahmad \& Mizuguchi, PAIRPred achieved an AUC of 87.3\% before any postprocessing, and 88.7\% after post processing.
+When using only sequence based features, PAIRPred achieved an AUC of 80.9\%, which demonstrates a significant improvement over PPiPP even in the absence of structural features.
+Partner-independent prediction was performed by taking the maximum score across all potential neighbors, and achieved an AUC of 70.8\% and 77.0\% using only sequence features and all features respectively, which also outperforms PPiPP's best partner-independent performance.
 
 Minhas et al.~\cite{minhas2014} note that the extreme class imbalance inherent to the partner-specific classification problem means AUC is not as easy to interpret. 
-Therefore they also calculate the rank of the first positive prediction (RFPP) at a given percentile, where $RFPP(p) = q$ means that p~\% of the complexes in the test set have at least one true positive pair among the top q predictions.
-Low values of q corresponding to high values of p indicate better classifier performance because a higher percentage of complexes have a true positive near the top predictions.
+Therefore they also calculate the rank of the first positive prediction (RFPP) at a given percentile, where $\textsc{RFPP}(p) = q$ means that $p$ of the complexes in the test set have at least one true positive pair among the top $q$ predictions.
+Low values of $q$ corresponding to high values of $p$ indicate better classifier performance because a higher percentage of complexes have a true positive near the top predictions.
 The authors argue that this is more relevant to a biologist because it indicates the trustworthiness of the top few predictions of the classifier. 
-PAIRPred outperforms PPiPP for values of p equal to 10, 25, 50, and 75, but is worse at the 90~\% level.
+PAIRPred outperforms PPiPP for values of $p$ equal to 10, 25, 50, and 75, but is worse at the 90\% level.
 
 The authors conclude by noting that there is much room for improvement in partner-specific interface prediction, particularly for complexes with a high degree of conformational change. 
 They propose adding new features to PAIRPred which capture shape complementarity between binding interfaces, co-evolution, and protein flexibility.
-However, PAIRPred's improvement over PPiPP suggests that not only is the choice of features important to classifier performance, but also their representation and the construction of the model itself.
-This supports the investigations of this thesis into the graph representation of proteins and new convolutional methods which operate on graphs.
+However, PAIRPred's improvement over PPiPP suggests that not only is the choice of features important to classifier performance, but also their representation and the construction of the predictor itself.
+This supports the investigations of this thesis into the graph representation of proteins and new convolution methods which operate on graphs.
 Chapter \ref{chap:neuralnetworks} gives a primer on the convolutional neural networks which helped inspire these new methods.

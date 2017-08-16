@@ -9,8 +9,8 @@ Several of these extensions are documented below, categorized as either extensio
 
 \subsection{Double Coupling and Ensemble Approaches}
 
-As discussed in Chapter \ref{chap:experiments}, sum coupling outperforms product coupling on rigid and medium difficulty complexes, whereas product coupling is better for difficult complexes.
-Therefore it would be reasonable to incorporate both sum and product coupling into a single convolution operation:
+As discussed in Chapter \ref{chap:experiments}, Sum Coupling outperforms Product Coupling on rigid and medium difficulty complexes, whereas Product Coupling is better for difficult complexes.
+Therefore it would be reasonable to incorporate both sum and Product Coupling into a single convolution operation:
 
 \begin{equation}
 h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{c}} x_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} (W^{\textsc{n}} x_j) \odot (W^{\textsc{e}} A_{ij}) + W^{\textsc{n}} x_j + W^{\textsc{e}} A_{ij} + b \bigg),
@@ -18,7 +18,7 @@ h_i(x | W^\textsc{c}, W^\textsc{n}, W^\textsc{e}, b) = \sigma \bigg( W^{\textsc{
 \end{equation}
 
 \noindent
-where here the same weight matrices are used in both the sum coupling and product coupling components to help prevent overfitting. 
+where here the same weight matrices are used in both the Sum Coupling and Product Coupling components to help prevent overfitting. 
 Alternately, separate weight matrices could be used to increase the model's expressive power.
 
 Recall that concerning the RFPP metric, the optimal network depth increased with complex difficulty, where more layers were needed for complexes of greater difficulty. 
@@ -39,7 +39,7 @@ Predicting an entire interface is a more difficult task than predicting only a f
 It could be that training a classifier in the former may hinder its performance in the latter.
 An alternative approach would be to just focus on generating a few predictions of high quality (i.e. confidence), which means optimizing performance on just the top positive predictions.
 The existing model uses a loss function which incorporates every training example, not just the top positive prediction, hence the model is optimized for all examples.
-This implies treating RFPP as the primary metric and optimizing it directly.
+The new approach implies treating RFPP as the primary metric and optimizing it directly.
 An alternate loss function which includes the loss from only the highest scoring positive example could be used.
 Hence when the loss is minimized, the performance of the highest performing positive example will be maximized.
 Here a sum over all examples has been replaced by a max function, which is not differentiable, but differentiable variants of the loss function could be constructed to enable gradient descent based learning.
@@ -64,7 +64,7 @@ These constraints, such as undercompleteness, regularization, and sparsity, prev
 The portion of the network which compresses the input is called the encoder, while the portion which reconstructs the input from the encoding is called the decoder.
 The encoding half of the autoencoder can be used independently of the decoding half to create representations of the input that are often useful in supervised tasks like classification~\cite{hinton2006b, bengio2007}.
 
-Masci et al (2011)~\cite{masci2011} proposed convolutional autoencoders (CAEs) which perform convolution to encode an image and \emph{deconvolution} to decode the image.
+Masci et al. (2011)~\cite{masci2011} proposed convolutional autoencoders (CAEs) which perform convolution to encode an image and \emph{deconvolution} to decode the image.
 There is also a corresponding \emph{unpooling} operation which upsamples images which were pooled during the encoding step.
 Deconvolution is simply a convolution operation performed on the result of an encoding convolution, with weights being tied between convolution and deconvolution layers.
 For $k$ filters of size $m \times m$ and $c$ channels, the corresponding deconvolution would consist of $c$ filters of size $m \times m$ and $k$ channels, where the weights have been reflected in both spatial dimensions (e.g. the weights for the lower left pixel of the receptive field are now applied to the upper right pixel).
@@ -84,7 +84,7 @@ Note that when reflecting image convolution filters, the center weight remains i
 In the same way, graph deconvolutions retain the same weights for the central vertex. 
 Furthermore, since all neighbors use the same weights, there is no spatial reflection necessary.
 Deconvolution simply consists of transposing the center and neighbor weight matrices so that channels become filters and filters become channels.
-For sum coupling, deconvolution becomes:
+For Sum Coupling, deconvolution becomes:
 
 \begin{equation}
 \hat{x_i}(h_i | W^\textsc{c}, W^\textsc{n}, W^{\textsc{e}*}, b^*) = \sigma \bigg( (W^{\textsc{c}})' h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} \big[ (W^{\textsc{n}})' h_j + W^{\textsc{e}*} A_{ij} \big] + b^* \bigg),
@@ -104,17 +104,17 @@ W^{\textsc{ev}} x_i + W^{\textsc{ev}} x_j \big) + b_\textsc{e} \bigg),
 \end{equation}
 
 \noindent
-where $h_{ij}$ is the representation of edge $(i, j)$ , $W^{\textsc{ee}}$ is the weight matrix associated with the edge, and $W^{\textsc{ev}}$ is the weight matrix associated with the incident vertices.
+where $h_{ij}$ is the representation of edge $(i, j)$ , $W^{\textsc{ee}}$ is the weight matrix associated with the edge, $W^{\textsc{ev}}$ is the weight matrix associated with the incident vertices, and $b_\textsc{e}$ is the bias.
 In this case, vertex deconvolution can use the encoded edge representations and associated weights.
 Equation (\ref{eq:sum_deconv}) then becomes:
 
 \begin{equation}
-\hat{x_i}(h_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{v}, b) = \sigma \bigg( (W^{\textsc{c}})' h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} \big[ (W^{\textsc{n}})' h_j + (W^{\textsc{ev}}) h_{ij} \big] + b^* \bigg),
+\hat{x_i}(h_i | W^\textsc{c}, W^\textsc{n}, W^\textsc{ev}, b) = \sigma \bigg( (W^{\textsc{c}})' h_i + \frac{1}{|\mathcal{N}_i|}\sum_{j \in \mathcal{N}_i} \big[ (W^{\textsc{n}})' h_j + (W^{\textsc{ev}})' h_{ij} \big] + b^* \bigg),
 \label{eq:sum_deconv2}
 \end{equation}
 
 \noindent
-where $(W^{\textsc{V}})'$ is the transpose of $W^{\textsc{V}}$.
+where $(W^{\textsc{ev}})'$ is the transpose of $W^{\textsc{ef}}$.
 Edges can also be deconvolved using the edge and vertex representations:
 
 \begin{equation}
@@ -145,7 +145,7 @@ For example, both the \v{C}ech and Vietoris-Rips definitions can be used to cons
 
 In both definitions, simplices are included in the simplicial complex based on some notion of proximity.
 This means simplicial complexes are naturally equipped to identify clusters of vertices within a neighborhood, something which can be useful for interface prediction, where local regions of residues may constitute portions of an interface.
-Though the number of possible convolution operations on simplicial complexes are many, one example is provided here for the purpose of discussion. 
+Though the number of possible convolution operations on simplicial complexes are many, one example is provided here as an illustration. 
 In this formulation, rather than sum the signal from all neighbors in the receptive field, each simplex $S_k, k \in \{1, 2,... K\}$ (not counting vertices and edges, which are the lowest order simplexes) in the neighborhood is summed individually and the maximum simplex signal is added to the central signal:
 
 \begin{equation}
@@ -170,8 +170,8 @@ Graph convolutional neural networks could also be used to evaluate putative dock
 For example, the interface derived from a docking solution could be compared to the interface predicted by a trained pairwise graph convolutional neural network and ranked according to similarity with the network prediction.
 Similarly, much research has been performed in protein modeling, which seeks to predict a protein's secondary and tertiary structures from sequence alone~\cite{schwede2013}.
 Though graph convolutions cannot be used to create protein folds \emph{de novo}, they can be used to evaluate a set of putative folds and likewise rank them.
-In both of these applications, regression is being performed not at the individual vertex level, but at the graph level.
-These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a \emph{fingerprint} similar to work by Duvenaud \& Maclaurin, et al.~\cite{duvenaud2015}.
+In both of these applications, scoring is being performed not at the individual vertex level, but at the graph level.
+These could take advantage of a global pooling method like taking the maximum or average across all vertices, or developing a fingerprint similar to work by Duvenaud \& Maclaurin, et al.~\cite{duvenaud2015}.
 
 Any application involving structured data that do not fit naturally into a grid is a potential candidate for graph convolutional approaches.
 Aside from proteins, other biological and chemical data often meet this criterion.
@@ -184,10 +184,11 @@ This is made possible by the vast and growing databases of chemical structures a
 
 Beyond the biochemical realm, graph structured data abound.
 Knowledge bases are collections of structured data in the form of triples indicating \emph{(subject, predicate, object)}, where \emph{subject} and \emph{object} are named entities and \emph{predicate} indicates the relationship between them, and pairs indicating \emph{(subject, attribute)}, where \emph{attribute} is a type or property label for \emph{subject}.
-These data can easily be thought of graphs, where entities are vertices each type of predicate is one of many different types of edge features, and each attribute is one of many different types of vertex features.
+These data can easily be thought of graphs, where entities are vertices, each type of predicate is one of many different types of edge features, and each attribute is one of many different types of vertex features.
 Knowledge bases emerge in online information repositories such as YAGO~\cite{mahdisoltani2014}, DBPedia~\cite{auer2007}, and Wikidata~\cite{vrandevcic2014}, and are used in the Google search engine \cite{singhal2012}.
 Due to their large size, knowledge graphs are often under-annotated, where vertex relationships and properties are missing. 
 A graph convolutional neural network can be used to predict properties or relationships on graphs, essentially performing automatic inference on the graph.
+This is the chief problem of interest for Schichtkrull \& Kipf~\cite{schlichtkrull2017}.
 
 
 

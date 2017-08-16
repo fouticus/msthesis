@@ -1,7 +1,7 @@
 \chapter{Experimental Setup}
 \label{chap:experiments}
 
-All of the spatial graph convolution methods described in Chapter \ref{chap:methods} were evaluated on the task of partner specific interface prediction and compared to the existing state of the art method.
+All of the spatial graph convolution methods described in Chapter \ref{chap:methods} were evaluated and compared to the existing state of the art method, PAIRpred~\cite{minhas2014}.
 This chapter outlines the training, validation, and testing data used for the evaluation, as well as the experimental procedure and relevant metrics.
 
 \section{Data}
@@ -10,11 +10,11 @@ Each model was trained, validated, and tested using complexes from the Docking B
 DBD is non-redundant in the sense that no two proteins in one complex are in the same Structural Classification of Proteins (SCOP)~\cite{murzin1995} families as two proteins in another complex, respectively.
 This ensures the data set is appropriate for testing, since no complex in the test set will be too similar to a complex in the training set.
 Each protein is classified into either \emph{rigid body}, \emph{medium difficulty}, or \emph{difficult}, based on the degree of conformational change upon forming the interface.
-This is quantified using the root mean squared deviation of the alpha carbons after unbound and bound structures are superimposed on one another. 
-Training and validation were performed using the 175 complexes that were present in version 4.0 of DBD, whereas the 55 new complexes added in DBD 5.0 were reserved for testing. 
+This is quantified using the root mean squared deviation of the $\alpha$-carbons after unbound and bound structures are superimposed on one another. 
+Training and validation were performed using the 175 complexes that were present in version 4.0 of DBD, whereas the 55 new complexes added in DBD v5.0 were reserved for testing. 
 Training and validation sets were created using a 80\%/20\% partition on the DBD v4.0 complexes, such that the difficulty class proportions in each partition were roughly equivalent.
 There were 140 training complexes and 35 validation complexes.
-Table \ref{tab:examples} indicates the number of positive and negative examples used from each dataset.
+Table \ref{tab:examples} indicates the number of positive and negative examples used in each dataset.
 
 \begin{table}
 	\centering
@@ -35,7 +35,7 @@ Table \ref{tab:examples} indicates the number of positive and negative examples 
 	\label{tab:examples}
 \end{table}
 
-3D structures are contained in Protein Data Bank (PDB) files, which contain atomic coordinates for each amino acid in the complexes.
+3D structures are contained in Protein Data Bank (PDB) files, which contain atomic coordinates for each amino acid in a complex.
 True interfaces were determined using the bound formations, where two amino acids are assumed to be interacting if they are within 6 \AA{} of each other, consistent with prior work~\cite{ofran2007, ahmad2011, minhas2014}.
 This definition permits a residue to interact with multiple partners in the interface.
 
@@ -52,7 +52,7 @@ More detail on each feature can be found in Appendix \ref{appendix:features}.
 \label{sect:missing_data}
 
 In some cases, features could not be calculated for a residue, resulting in missing values.
-For 13 residues, the atomic coordinates of the central alpha carbon were not present in the PDB files, so some features could not be calculated (see Appendix \ref{appendix:features} for more detail).
+For 13 residues, the atomic coordinates of the central $\alpha$-carbon were not present in the PDB files, so some features could not be calculated (see Appendix \ref{appendix:features} for more detail).
 Most features rely on third party software to calculate the features from the PDB data.
 For the proteins with DBD codes 2B42 and 3R9A, features related to the protrusion index could not be calculated for the receptor due to an unknown third party software fault.
 These complexes were omitted during model selection but re-introduced with imputed values before testing.
@@ -84,7 +84,7 @@ Random or grid search are no better.
 For this thesis, some experiments were performed with SMBO algorithms, but none produced hyper-parameters which outperformed results found by human exploration.
 Therefore automated approaches were abandoned in favor of a manual search.
 
-Several hyper-parameters were explored manually by training/validating networks under different settings of the hyper-parameters.
+Several hyper-parameters were explored manually by training and validating networks under different settings of the hyper-parameters.
 This exploration occurred in a one-hyper-parameter-at-a-time fashion, alleviating the search space problem encountered with the automated algorithms, but also limiting the ability to explore interactions between different hyper-parameters.
 In some cases, the choice of hyperparameter affected training time and model convergence rate, but had little impact on overall model performance (e.g. the nonlinear activation function, training algorithm, the number of convolutional filters).
 In other cases, few values had to be searched before a local optimum was found (e.g. the number of dense layers after merging, minibatch size, optimization strategy, residue distance Gaussian function standard deviation).
@@ -104,9 +104,10 @@ In contrast to images which may have only 1 or 3 channels, protein graphs have 7
 Nevertheless, a larger number of filters proved beneficial, so all graph convolutions started with 256 filters and increased to a size of 512 in the last convolutional layer (if the network had more than one).
 
 
-Most model selection was performed on the novel graph convolutions and the "no convolution" case.
+Most model selection was performed on the proposed graph convolutions and No Convolution.
 Because most of the the other convolution methods are not appreciably different, an abridged model selection process was performed for them, simply to check whether the same hyperparameters could reasonably be used.
-The exceptional case was DCNN, where the Gaussian standard deviation for residue distances was observed to have a significant impact on model performance. 
+This was indeed the case.
+The exception was DCNN, where the Gaussian standard deviation for residue distances was observed to have a significant impact on model performance. 
 For this method, rather than using a value of $\sigma = 18\AA{}$, much smaller values of $2\AA{}$ and $4\AA{}$ were chosen for the testing phase.
 Given that the diffusion is occurring on a complete graph, the smaller values allow only local information to propagate during each hop.
 The other graph convolutional methods do not have this same problem, since they are restricted to a fixed size receptive field. 
@@ -115,23 +116,23 @@ However, additional diffusion convolutional layers did not improve performance, 
 
 \subsection{Model Testing Setup}
 
-Final model testing was performed for all variants of convolution and the No Convolution case.
-For each variant, receptive field sizes of 11 and 21 were tested (the central vertex plus 10 or 20 neighbors, respectively), with one, two, three, and four graph convolutional layers. 
-In total, 16 combinations were tested, except DDCNN as already noted.
+Final model testing was performed for all variants of convolution and No Convolution.
+For each variant, receptive field sizes of 11 and 21 were tested (the central vertex plus 10 or 20 nearest neighbors, respectively), with one, two, three, and four graph convolutional layers. 
+In total, 16 combinations were tested, except DCNN as already noted.
 All variants followed the same training scheme:
 The number of filters for networks with one convolutional layer was 256, Likewise for two, three, and four convolutional layers the number of filters was (256, 512), (256, 256, 512), and (256, 256, 512, 512) respectively.
 For DTNN, the number of filters necessarily matched the number of input features, 70.
-After merging examples via concatenation, dense layers of 256 and 1 units were applied, with the latter producing the model output.
-Except for the last layer, rectified linear units (ReLU) as the nonlinear activation function, except for DTNN for reasons explained below.
+After merging examples via concatenation, dense layers of 256 and one units were applied, with the latter producing the model output.
+Except for the last layer, rectified linear units (ReLU) as the nonlinear activation function, except for DTNN for the following reason.
 Note that activation functions are being applied to each neighbor individually in Equation (\ref{eq:deep_tensor}), which is different from the other methods.
 Since ReLU is non-negative, it would force the layer output to be greater or equal to the input.
-Therefore, tanh is used instead to allow for both positive and negative adjustments.
+Therefore, tanh is used instead to allow for both positive and negative adjustments to $x_i$.
 
 Loss was computed using weighted cross entropy, a measure of the dissimilarity between two probability distributions.
-Since this is a binary classification problem, the cross entropy for a residue pair $x_i$ is defined as: 
+Since this is a binary classification problem, the cross entropy for a residue pair $\xi_i$ is defined as: 
 
 \begin{equation}
-\mathbb{H}(x_i, y_i | \Theta) = - r ~ y_{i0} ~ log\big(f_0(x_i|\Theta)\big) - y_{i1} ~ log\big(f_1(x_i|\Theta)\big),
+\mathbb{H}(\xi_i, y_i | \Theta) = - r ~ y_{i0} ~ log\big(f_0(\xi_i|\Theta)\big) - y_{i1} ~ log\big(f_1(\xi_i|\Theta)\big),
 \label{eq:weighted_ce}
 \end{equation}
 
@@ -140,7 +141,7 @@ where $f = (f_0, f_1)$ is the softmax network output, interpreted as class proba
 The overall loss function is then:
 
 \begin{equation}
-\mathbb{L}(\Theta | \{x_i, y_i\}) = \sum_{i} \mathbb{H}(x_i, y_i | \Theta),
+\mathbb{L}(\Theta | \{\xi_i, y_i\}) = \sum_{i} \mathbb{H}(\xi_i, y_i | \Theta),
 \end{equation}
 
 \noindent
@@ -158,7 +159,7 @@ Training time varied from roughly 7 to 220 minutes depending on convolution meth
 Most methods took less than 60 minutes, with the exceptions being 4 layer PATCHY-SAN networks and R-GCNs that include basis functions.
 
 
-The graph convolution variants were compared to PAIRpred, an existing state-of-the-art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al.~\cite{minhas2014}.
+The graph convolution variants were compared to PAIRpred, an existing state of the art partner specific interface prediction algorithm based on an SVM with custom symmetric pairwise kernels, proposed by Minhas et al.~\cite{minhas2014}.
 PAIRpred was run with the same features and data that were used in this work for the purpose of comparison.
 Grid search with five-fold cross validation was used to select the optimal kernel and soft margin parameters.
 
@@ -171,7 +172,7 @@ A metric more appropriate for interface prediction would be the area under the r
 Instead, it summarizes the true positive rate across all false positive rates, indicating threshold independent performance of the classifier.
 
 In addition, in the case of an extreme class imbalance, the AUC is misleading, since the movement of a single positive example can heavily influence the true positive rate compared to the effect that a single negative example has on the false positive rate.
-Even with a high AUC, a classifier may rank a number of negative examples above the first positive examples, when ranking by predicted likelihood of being part of the interface.
+Even with a high AUC, a classifier may rank a number of negative examples above the first positive example, when ranking by predicted likelihood of being part of the interface.
 In this case, it is also useful to measure how far down the ranked scores one has to go before encountering a true positive.
 A metric which captures this directly is the rank of the first positive prediction (RFPP), where the rank is computed after ordering pairs by classifier score.
 Ideally, the top ranking prediction is truly part of the interface, in which case RFPP is 1.
