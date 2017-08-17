@@ -217,7 +217,7 @@ In contrast, the five hop DCNN performed better for $\sigma=2\AA{}$, suggesting 
 It is often difficult to understand the behavior of a model by simply looking at the overall performance. 
 For convolutional neural networks on images, intuition can be gained through a variety of methods, including visualizing filters directly, tracking a filter's activation as different regions of the image are occluded, and identifying which images maximally activate each filter. 
 To understand the filters being learned in this pairwise neural network architecture, network scores and filter activations were mapped to a protein complex heatmap.
-Figure \ref{fig:filter_vis} presents color maps on the complex 3HI6 which depict the true interface, maximum predicted scores for each residue, and the activation of two filters from last convolutional layer, for the best performing method (Sum Coupling with two layers and receptive field size of 21).
+Figure \ref{fig:filter_vis} presents color maps on the complex 3HI6~\cite{zhang2009} which depict the true interface, maximum predicted scores for each residue, and the activation of two filters from last convolutional layer, for the best performing method (Sum Coupling with two layers and receptive field size of 21).
 Scores are partner specific, so they are shown for a single residue after taking the maximum over all potential partners.
 This partner independent visualization matches well with the true interface.
 In contrast, convolutional filters occur at the residue level and can be visualized directly. 
@@ -226,7 +226,7 @@ Specifically, one activates only for buried residues (indicating an \emph{unlike
 
 \begin{figure}
 	\includegraphics[width=0.6\textwidth]{3HI6_collage.png}
-	\caption{PyMOL~\cite{schrodinger2015} visualizations of the best performing test complex (3HI6). Upper left: Ligand (red) and receptor (blue), along with the true interface (yellow). Upper right: Visualization of predicted scores, where brighter colors (cyan and orange) are higher scores and darker colors (blue and red) are lower scores. Since scores are for pairs of residues, we take the max score over all partners in the opposing protein. Bottom row: Activations of two filters in the second convolutional layer, where brighter colors indicate greater activation and black indicates activation of zero. Lower left: Filter which provides higher activations for buried residues, a useful screening criterion for interface detection. Lower right: Filter which gives high activations for residues near the interface of this complex.
+	\caption{PyMOL~\cite{schrodinger2015} visualizations of the best performing test complex (3HI6~\cite{zhang2009}). Upper left: Ligand (red) and receptor (blue), along with the true interface (yellow). Upper right: Visualization of predicted scores, where brighter colors (cyan and orange) are higher scores and darker colors (blue and red) are lower scores. Since scores are for pairs of residues, we take the max score over all partners in the opposing protein. Bottom row: Activations of two filters in the second convolutional layer, where brighter colors indicate greater activation and black indicates activation of zero. Lower left: Filter which provides higher activations for buried residues, a useful screening criterion for interface detection. Lower right: Filter which gives high activations for residues near the interface of this complex.
 		\label{fig:filter_vis}}
 \end{figure}
 

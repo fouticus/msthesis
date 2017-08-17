@@ -108,7 +108,7 @@ Most model selection was performed on the proposed graph convolutions and No Con
 Because most of the the other convolution methods are not appreciably different, an abridged model selection process was performed for them, simply to check whether the same hyperparameters could reasonably be used.
 This was indeed the case.
 The exception was DCNN, where the Gaussian standard deviation for residue distances was observed to have a significant impact on model performance. 
-For this method, rather than using a value of $\sigma = 18\AA{}$, much smaller values of $2\AA{}$ and $4\AA{}$ were chosen for the testing phase.
+For this method, rather than using a value of $\sigma = 18\AA$, much smaller values of 2\AA{} and 4\AA{} were chosen for the testing phase.
 Given that the diffusion is occurring on a complete graph, the smaller values allow only local information to propagate during each hop.
 The other graph convolutional methods do not have this same problem, since they are restricted to a fixed size receptive field. 
 Diffusion convolutions do not downsample the input, so it is possible to stack multiple convolutions on top of one another.

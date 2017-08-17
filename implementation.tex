@@ -1,3 +1,186 @@
 
-\chapter{Implementation}
+\chapter{Software Implementation}
 \label{appendix:implementation}
+
+The main software used in this thesis was written in Python version 2.7.13.
+Rather than writing several individual scripts which each ran their own experiments, the software was written as a unified framework which would allow consistent use of data, rapid experimentation, and reuse of critical experimental code.
+This experiment briefly describes some of the notable elements of the software.
+
+\section{Experiment Specification Files}
+
+Experiments are specified using the YAML data format, a human readable data serialization language. 
+To run an experiment, the user calls the main experiment running script and passes the specification file name as an argument.
+The specification file fully defines the experiment(s) being run, to include the data format, model architecture, and training/testing procedure. 
+This has a number of advantages.
+First, it ensures traceability from experimental conditions to results. 
+A copy of the experiment file is placed in the same directory of the experiment results, ensuring that any results from past experiments can be understood and interpreted appropriately.
+Second, it allows rapid iteration of experimentation, since running a modified version of an experiment is requires a simple modification of the specification file.
+Third, it allows concurrent researchers to review each others' work without having lengthy discussions about the precise experimental settings used.
+For illustration, the contents of an example YAML file are shown below (for Sum Coupling, receptive field size 21, for one, two , three, and four layers):
+
+
+\begin{minted}[frame=single, fontsize=\small]{yaml}
+type: 'experimentset'
+common:
+  type: 'traintest'
+  args:
+    test_frequency: 80
+    vis_frequency: 80
+    test_before_train: True
+    num_epochs: 80
+    minibatch_size: 128
+    test_batch_size: 2000
+    checkpoint_frequency: 80
+  data:
+    dataset: "dbd5"
+    train_list: ["train_list_w_2B42.yml", "validate_list.yml"]
+    test_list: "test_list_w_3R9A.yml"
+    n_train: -1
+    n_test: -1
+    train_ratio: 10
+    test_ratio: -1
+    nans: "global_median"
+    features:
+    - "WINDOWED_POSITION_SPECIFIC_SCORING_MATRIX"
+    - "RELATIVE_ACCESSIBLE_SURFACE_AREA"
+    - "RESIDUE_DEPTH"
+    - "PROTRUSION_INDEX"
+    - "HALF_SPHERE_EXPOSURE"
+    - "RES_DIST_AVE"
+    #- "RES_DIST_STD"
+    - "ANGLE_CCAO"
+    #- "ANGLE_HSAA_COS"
+    feature_args:
+      profile_params:
+        window_size: 1
+        blast-database: "/s/<host>/a/tmp/blastdb/db"
+      distance_matrix:
+        preprocess: ["gaussian_kernel", 18]
+      angle_matrix:
+        preprocess: "divide_pi"
+    representation: "pairwise_data_per_protein_with_hood_indices"
+  metrics:
+    - "learning_rate"
+    - "params"
+    - "loss_train"
+    - "loss_test"
+    - "roc_train"
+    - "roc_test"
+    - "rfpp_train"
+    - "rfpp_test"
+  model:
+    name: "PWClassifier"
+    layer_args: {init: "he", coupling: "sum", bias_init: "zero",
+        nonlin: "relu", dropout_keep_prob: 0.5}
+    loss: "tf_weighted_crossent"
+    loss_args:
+      pn_ratio: 0.1
+    optimizer: "tf_sgd"
+    optimizer_args:
+      learning_rate: 0.1
+experiments:
+- - "1_layer_rf20"
+  - data:
+      nhood_size: 20
+    model:
+      layers:
+      - ["star_v_conv", {filters: 256}]
+      - ["merge_gather_swap_paired_examples", 
+              {mode: ["concat"]}, ["merge"]]
+      - ["dense", {out_dims: 512}]
+      - ["dense", {out_dims: 1, nonlin: "linear"}]
+      - ["combine_swapped"]
+- - "2_layer_rf20"
+  - data:
+      nhood_size: 20
+    model:
+      layers:
+      - ["star_v_conv", {filters: 256}]
+      - ["star_v_conv", {filters: 512}]
+      - ["merge_gather_swap_paired_examples", 
+              {mode: ["concat"]}, ["merge"]]
+      - ["dense", {out_dims: 512}]
+      - ["dense", {out_dims: 1, nonlin: "linear"}]
+      - ["combine_swapped"]
+- - "3_layer_rf20"
+  - data:
+      nhood_size: 20
+    model:
+      layers:
+      - ["star_v_conv", {filters: 256}]
+      - ["star_v_conv", {filters: 256}]
+      - ["star_v_conv", {filters: 512}]
+      - ["merge_gather_swap_paired_examples", 
+              {mode: ["concat"]}, ["merge"]]
+      - ["dense", {out_dims: 512}]
+      - ["dense", {out_dims: 1, nonlin: "linear"}]
+      - ["combine_swapped"]
+- - "4_layer_rf20"
+  - data:
+      nhood_size: 20
+    model:
+      layers:
+      - ["star_v_conv", {filters: 256}]
+      - ["star_v_conv", {filters: 256}]
+      - ["star_v_conv", {filters: 512}]
+      - ["star_v_conv", {filters: 512}]
+      - ["merge_gather_swap_paired_examples", 
+              {mode: ["concat"]}, ["merge"]]
+      - ["dense", {out_dims: 512}]
+      - ["dense", {out_dims: 1, nonlin: "linear"}]
+      - ["combine_swapped"]
+\end{minted}
+
+
+\section{Convolution Functions}
+
+Because all convolution approaches used a similar neural network architecture, each layer type was implemented as a function, and the relevant function is named in the experiment specification file (for example, "star\_v\_conv" in the YAML code above).
+Each layer function would receive as inputs the outputs of the previous layer(s), and any number of keyword arguments specific to that layer.
+The layer would define any TensorFlow operations on the inputs that produce the layer's output.
+Below is an example function implementing a convolutional layer, which is a simplified version of "star\_v\_conv" mentioned above.
+
+\begin{minted}[frame=single, fontsize=\small]{python}
+def star_v_conv(layer_input, filters, init, bias_init, nonlin, 
+                coupling, dropout_keep_prob, bias, **kwargs):
+    # get inputs 
+    vertices, edges, nh_indices = layer_input
+    v_shape = vertices.get_shape()
+    e_shape = edges.get_shape()
+    nh_size = nh_indices.get_shape()[1].value
+
+    # create weights
+    Wvc = tf.Variable(initializer(init, (v_shape[1].value, filters)))
+    bv = tf.Variable(initializer(bias_init, (filters,)), name="bv")
+    Wvn = tf.Variable(initializer(init, (v_shape[1].value, filters)))
+    We = tf.Variable(initializer(init, (e_shape[2].value, filters)))
+
+    # create central vertex signals
+    Zc = tf.matmul(vertices, Wvc, name="Zc")
+
+    # create neighbor signals
+    e_We = tf.tensordot(edges, We, axes=[[2], [0]], name="e_We")
+    v_Wvn = tf.matmul(vertices, Wvn, name="v_Wvn")
+    if coupling == "sum":
+        Zn = tf.divide(
+             tf.reduce_sum(tf.gather(v_Wvn, nh_indices), 1) \\
+             + tf.reduce_sum(e_We, 1), \\
+             nh_size)
+    elif coupling == "product":
+        Zn = tf.divide(
+             tf.reduce_sum(tf.gather(v_Wvn, nh_indices) \\
+             * e_We, axis=1), \\
+             nh_size)
+
+    # signal
+    sig = Zn + Zc
+    if bias:
+        sig += bv
+
+    # pass through the nonlinearity
+    z = tf.reshape(nonlin(sig), tf.constant([-1, filters]))
+    
+    # dropout
+    z = tf.nn.dropout(z, dropout_keep_prob)
+    return z
+
+\end{minted}
